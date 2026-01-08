@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails utilisateur - FINEO</title>
+    <style>
+
+                .container, .card, .info-grid, .stats-grid, .info-item, .stat-card {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+                .card { padding: 10px !important; border-radius: 7px !important; margin-bottom: 8px !important; }
+                .card-title { font-size: 14px !important; margin-bottom: 6px !important; }
+                .info-grid, .stats-grid {
+                    display: grid !important;
+                    grid-template-columns: 1fr !important;
+                    gap: 8px !important;
+                }
+                .info-item, .stat-card { padding: 6px !important; border-radius: 4px !important; }
+                .info-label, .stat-label { font-size: 11px !important; }
+                .info-value, .stat-value { font-size: 14px !important; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(180deg, 
+                    #f8fafc 0%,
+                    #eff6ff 25%,
+                    #dbeafe 45%,
+                    #ffffff 65%,
+                    #ffffff 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+
+        .header-title {
+            font-size: 20px !important;
+            font-weight: 700;
+            color: #1e293b !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
+            background-clip: unset !important;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: var(--blue-main);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: var(--blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            backdrop-filter: blur(16px);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--blue-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--blue-main);
+            border-radius: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(239,246,255,0.3));
+            border-radius: 8px;
+            border: 1px solid rgba(37, 99, 235, 0.1);
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--blue-deep);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(239,246,255,0.4));
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.15);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--blue-main);
+            margin-bottom: 12px;
+        }
+
+        .stat-details {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .stat-details strong {
+            color: var(--blue-deep);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .budget-warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .month-badge {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--blue-main);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .percentage-badge {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+      
+</head>
+<body>
+    <div class="container">
+        <h1 class="header-title">Détails de l'utilisateur</h1>
+
+
+        <div class="card">
+            <div class="card-title">Informations générales</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">ID</span>
+                    <span class="info-value" th:text="${user.id}"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nom d'utilisateur</span>
+                    <span class="info-value" th:text="${user.username}"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">E-mail</span>
+                    <span class="info-value" th:text="${user.email}"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nombre de catégories</span>
+                    <span class="info-value" th:text="${categoryCount}"></span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-title">Statistiques des dépenses</div>
+            <div class="stats-grid">
+                
+                <div class="stat-card">
+                    <div class="stat-label">📊 Catégorie la plus utilisée</div>
+                    <th:block th:if="${mostUsedCategory != 'Aucune dépense'}">
+                        <div class="stat-value" th:text="${mostUsedCategory}"></div>
+                        <div class="stat-details">
+                            <strong>Montant:</strong> <span th:text="${#numbers.formatDecimal(mostUsedCategoryAmount, 1, 'DEFAULT', 2, 'DEFAULT')}"></span> DH<br>
+                            <strong>Mois:</strong> <span th:text="${mostUsedCategoryMonth}"></span>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${mostUsedCategory == 'Aucune dépense'}">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>Aucune dépense</p>
+                        </div>
+                    </th:block>
+                </div>
+
+                
+                <div class="stat-card budget-warning">
+                    <div class="stat-label">⚠️ Catégorie en dépassement</div>
+                    <th:block th:if="${overBudgetCategory != 'Aucun dépassement'}">
+                        <div class="stat-value" th:text="${overBudgetCategory}"></div>
+                        <div class="stat-details">
+                            <strong>Budget:</strong> <span th:text="${#numbers.formatDecimal(overBudgetBudget, 1, 'DEFAULT', 2, 'DEFAULT')}"></span> DH<br>
+                            <strong>Dépensé:</strong> <span th:text="${#numbers.formatDecimal(overBudgetSpent, 1, 'DEFAULT', 2, 'DEFAULT')}"></span> DH<br>
+                            <strong>Mois:</strong> <span th:text="${overBudgetMonth}"></span>
+                        </div>
+                        <span class="percentage-badge" th:text="${overBudgetPercentage} + '%'"></span>
+                    </th:block>
+                    <th:block th:if="${overBudgetCategory == 'Aucun dépassement'}">
+                        <div class="empty-state">
+                
+                            <p>Aucun dépassement</p>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

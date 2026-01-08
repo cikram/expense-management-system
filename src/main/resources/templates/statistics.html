@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <style>
+       
+
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(120deg, #f8fafc 0%, #f0f6fc 40%, #eff6ff 90%);
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+
+
+        }
+        main {
+            flex: 1;
+        }
+        .hidden { display: none; }
+
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+        }
+
+
+        #statisticsForm {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.10);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 92vw;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+        }
+        #statisticsForm fieldset {
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: 12px;
+            padding: 14px 16px 12px;
+            margin: 0 0 14px;
+            background: rgba(248, 250, 252, 0.7);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #statisticsForm legend {
+            padding: 0 8px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+        #statisticsForm label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0f172a;
+        }
+
+
+        #statisticsForm select,
+        #statisticsForm input[type="month"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #fff;
+            color: #1e293b;
+            transition: all 0.2s ease;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+        #statisticsForm input[type="radio"] {
+            accent-color: var(--blue-main);
+            width: 18px;
+            height: 18px;
+        }
+        #statisticsForm input:focus,
+        #statisticsForm select:focus {
+            outline: none;
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .radio-group { display: grid; gap: 10px; }
+        .radio-tile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .radio-tile:hover { border-color: var(--blue-dark); box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12); }
+
+        .fieldset-body { display: grid; gap: 12px; width: 100%; box-sizing: border-box; }
+        .inline-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+
+        .form-actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size:14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22); }
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #cbd5e1, #e2e8f0);
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .link-reset {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--blue-dark);
+            font-weight: 600;
+            text-decoration: none;
+            font-size:14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(37,99,235,0.08);
+            border: 1px solid rgba(37,99,235,0.18);
+            transition: all 0.2s ease;
+        }
+        .link-reset:hover { background: rgba(37,99,235,0.12); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12); }
+
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+        }
+
+        #chartCanvas { width: 100%; max-width: 1100px; height: 500px; }
+
+        #chartContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #chartContainer.pie-mode #chartCanvas {
+            max-width: 450px !important;
+            max-height: 450px !important;
+        }
+
+        #chartContainer.line-mode #chartCanvas {
+            max-width: 1000px !important;
+            max-height: 450px !important;
+        }
+
+
+        h2 {
+            font-size: 32px;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        p.lead {
+            color: #475569;
+            margin: 0 auto 70px auto;
+            line-height: 1.5;
+            max-width: 760px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        nav { display: flex; gap: 28px; align-items: center; }
+        nav a { color: #475569; text-decoration: none; font-size: 14px; transition: color 0.2s ease; }
+        nav a:hover { color: var(--blue-dark); }
+
+        .profile-menu { position: relative; display: flex; align-items: center; }
+
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .profile-button:hover { background: var(--blue-dark); color: #fff; }
+
+        .profile-icon { width: 20px; height: 20px; margin-right: 5px; }
+
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: -5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0;
+            backdrop-filter: blur(16px);
+            z-index: 30;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-menu.active { display: block; }
+
+        .logout-menu button,
+        .logout-menu a {
+            width: 100%;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+            display: block;
+            box-sizing: border-box;
+        }
+
+        .logout-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+        .logout-link.logout-link-danger {
+            color: #e11d48;
+        }
+        .logout-link:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+
+         footer {
+            width: 100%;
+            background: linear-gradient(
+                180deg,
+                rgba(239, 246, 255, 0.6) 0%,
+                rgba(248, 250, 252, 0.85) 30%,
+                rgba(249, 250, 251, 1) 100%
+            );
+            width: 100vw;
+            border-top: 1px solid var(--glass-border);
+            padding: 12px 16px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 40px;
+        
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 10px; }
+            nav { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/budgets">Budgets</a>
+        <a href="/expenses">Dépenses</a>
+        <a href="/categories">Catégories</a>
+        <a href="/reports">Rapports</a>
+        <a href="/statistics" style="color: var(--blue-dark); font-weight: 700;">Statistiques</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a th:href="@{/users/profile}" class="logout-link">Mon profil</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="container mt-4">
+    <section>
+        <h2>Générateur de Graphiques</h2>
+
+        <p class="lead">
+            Générez des graphiques pour analyser vos dépenses par catégorie ou les comparer entre elles.
+        </p>
+
+        <form id="statisticsForm" method="get">
+            <input type="hidden" name="submitted" value="true" />
+            <fieldset>
+                <legend>Type de graphique</legend>
+                <div class="radio-group">
+                    <label class="radio-tile">
+                        <input type="radio" name="graphType" value="single">
+                        <span>Catégorie unique</span>
+                    </label>
+                    <label class="radio-tile">
+                        <input type="radio" name="graphType" value="compare">
+                        <span>Comparatif (plusieurs catégories)</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="form-grid">
+                <fieldset id="categoryFieldset" class="hidden">
+                    <legend>Catégories</legend>
+                    <div class="fieldset-body">
+                        <div id="singleCategorySection" class="hidden">
+                            <label>Catégorie :</label>
+                            <select id="categorySelectSingle" name="category1" disabled>
+                                <option value="">-- Sélectionner --</option>
+                                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                            </select>
+                        </div>
+
+                        <div id="compareCategorySection" class="hidden">
+                            <label>Catégorie 1 :</label>
+                            <select id="compareCategory1" name="category1" disabled>
+                                <option value="">-- Sélectionner --</option>
+                                <option value="-1">Toutes les catégories</option>
+                                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                            </select>
+
+                            <div id="compareSecondSelect">
+                                <label>Catégorie 2 :</label>
+                                <select id="compareCategory2" name="category2" disabled>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset id="periodFieldset" class="hidden">
+                    <legend>Période</legend>
+                    <div class="fieldset-body">
+                        <div class="radio-group">
+                            <label class="radio-tile">
+                                <input type="radio" name="periodType" value="month"> <span>Par mois</span>
+                            </label>
+                            <label class="radio-tile">
+                                <input type="radio" name="periodType" value="range"> <span>Par durée</span>
+                            </label>
+                        </div>
+
+                        <div id="monthSection" class="hidden">
+                            <label>Mois :</label>
+                            <input type="month" name="singleMonth">
+                        </div>
+
+                        <div id="rangeSection" class="hidden inline-row">
+                            <div>
+                                <label>De :</label>
+                                <input type="month" name="startMonth">
+                            </div>
+                            <div>
+                                <label>À :</label>
+                                <input type="month" name="endMonth">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="generateButton" class="btn-primary" disabled>
+                    <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="4" y="11" width="3" height="7" rx="1"></rect>
+                        <rect x="10" y="8" width="3" height="10" rx="1"></rect>
+                        <rect x="16" y="5" width="3" height="13" rx="1"></rect>
+                        <path d="M4 19h16" stroke-linecap="round"></path>
+                    </svg>
+                    Générer
+                </button>
+                <a class="link-reset" href="/statistics">
+                    <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 12a8 8 0 1 0-2.3 5.7" stroke-linecap="round"></path>
+                        <path d="M20 8v4h-4" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    Réinitialiser
+                </a>
+            </div>
+        </form>
+
+
+        <div id="chartContainer">
+            <canvas id="chartCanvas"></canvas>
+            <div id="noDataMessage" style="display:none; text-align:center; color:#e11d48; font-size:18px; font-weight:600; margin-top:30px;">Aucune dépense trouvée pour les catégories sélectionnées.</div>
+            <div id="noDataMessageBoth" style="display:none; text-align:center; color:#e11d48; font-size:14px; font-weight:600; margin-top:30px; z-index:9999; position:relative;">Aucune dépense et aucun budget trouvés.</div>
+        </div>
+    </section>
+    </div>
+</main>
+
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const form = document.getElementById('statisticsForm');
+    const categoryFieldset = document.getElementById('categoryFieldset');
+    const singleCategorySection = document.getElementById('singleCategorySection');
+    const compareCategorySection = document.getElementById('compareCategorySection');
+    const compareCategory1 = document.getElementById('compareCategory1');
+    const compareCategory2 = document.getElementById('compareCategory2');
+    const compareCategory2Container = document.getElementById('compareSecondSelect');
+    const periodFieldset = document.getElementById('periodFieldset');
+    const monthSection = document.getElementById('monthSection');
+    const rangeSection = document.getElementById('rangeSection');
+    const generateButton = document.getElementById('generateButton');
+    const categorySelectSingle = document.getElementById('categorySelectSingle');
+
+    function resetDynamic() {
+        categoryFieldset.classList.add('hidden');
+        singleCategorySection.classList.add('hidden');
+        compareCategorySection.classList.add('hidden');
+        periodFieldset.classList.add('hidden');
+        monthSection.classList.add('hidden');
+        rangeSection.classList.add('hidden');
+        monthSection.style.display = 'none';
+        rangeSection.style.display = 'none';
+
+
+        categorySelectSingle.disabled = true;
+        compareCategory1.disabled = true;
+        compareCategory2.disabled = true;
+        generateButton.disabled = true;
+
+
+        const singleMonthInput = form.querySelector('input[name="singleMonth"]');
+        const startInput = form.querySelector('input[name="startMonth"]');
+        const endInput = form.querySelector('input[name="endMonth"]');
+        singleMonthInput.value = '';
+        startInput.value = '';
+        endInput.value = '';
+        singleMonthInput.disabled = true;
+        startInput.disabled = true;
+        endInput.disabled = true;
+    }
+
+    function enableSingleMode() {
+        categorySelectSingle.disabled = false;
+        compareCategory1.disabled = true;
+        compareCategory2.disabled = true;
+    }
+    function enableCompareMode() {
+        categorySelectSingle.disabled = true;
+        compareCategory1.disabled = false;
+        compareCategory2.disabled = false;
+    }
+
+
+    resetDynamic();
+
+    function checkFormCompletion() {
+        const graphType = form.querySelector('input[name="graphType"]:checked')?.value;
+        const periodType = form.querySelector('input[name="periodType"]:checked')?.value;
+        let categoryOk = false;
+        let periodOk = false;
+
+        if (graphType === "single") {
+            const singleCat = categorySelectSingle.value;
+            categoryOk = singleCat !== "";
+        } else if (graphType === "compare") {
+            const cat1 = compareCategory1.value;
+            const cat2 = compareCategory2.value;
+            if (cat1 === "-1") categoryOk = true;
+            else categoryOk = cat1 !== "" && cat2 !== "";
+        }
+
+        if (periodType === "month") {
+            const singleMonth = form.querySelector('input[name="singleMonth"]').value;
+            periodOk = singleMonth !== "";
+        } else if (periodType === "range") {
+            const start = form.querySelector('input[name="startMonth"]').value;
+            const end = form.querySelector('input[name="endMonth"]').value;
+            periodOk = start !== "" && end !== "";
+        }
+
+        generateButton.disabled = !(graphType && categoryOk && periodOk);
+    }
+
+
+    form.querySelectorAll('input[name="graphType"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            resetDynamic();
+            const type = e.target.value;
+            categoryFieldset.classList.remove('hidden');
+            periodFieldset.classList.remove('hidden');
+            if (type === 'single') {
+                singleCategorySection.classList.remove('hidden');
+                enableSingleMode();
+            }
+            if (type === 'compare') {
+                compareCategorySection.classList.remove('hidden');
+                enableCompareMode();
+            }
+            checkFormCompletion();
+        });
+    });
+
+
+    compareCategory1?.addEventListener('change', e => {
+        if (e.target.value === '-1') {
+            compareCategory2Container.classList.add('hidden');
+        } else {
+            compareCategory2Container.classList.remove('hidden');
+        }
+        checkFormCompletion();
+    });
+
+
+    form.querySelectorAll('input[name="periodType"]').forEach(radio => {
+        radio.addEventListener('change', e => {
+            monthSection.classList.add('hidden');
+            rangeSection.classList.add('hidden');
+            const singleMonthInput = form.querySelector('input[name="singleMonth"]');
+            const startInput = form.querySelector('input[name="startMonth"]');
+            const endInput = form.querySelector('input[name="endMonth"]');
+
+            if (e.target.value === 'month') {
+                monthSection.classList.remove('hidden');
+                monthSection.style.display = 'block';
+                rangeSection.style.display = 'none';
+                singleMonthInput.disabled = false;
+                startInput.disabled = true;
+                endInput.disabled = true;
+                startInput.value = '';
+                endInput.value = '';
+            }
+            if (e.target.value === 'range') {
+                rangeSection.classList.remove('hidden');
+                rangeSection.style.display = 'grid';
+                monthSection.style.display = 'none';
+                singleMonthInput.disabled = true;
+                singleMonthInput.value = '';
+                startInput.disabled = false;
+                endInput.disabled = false;
+            }
+            checkFormCompletion();
+        });
+    });
+
+    form.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('change', checkFormCompletion);
+    });
+    /*]]>*/
+</script>
+
+
+<script>
+
+    (function() {
+        const profileBtn = document.getElementById('profileBtn');
+        const logoutMenu = document.getElementById('logoutMenu');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                logoutMenu.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+                    logoutMenu.classList.remove('active');
+                }
+            });
+        }
+    })();
+</script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const expensesData = JSON.parse(/*[[${expensesEvolutionJson}]]*/ '{}');
+    const budgetsData = JSON.parse(/*[[${budgetsEvolutionJson}]]*/ '{}');
+    const chartKind = /*[[${chartKind}]]*/ 'pie';
+    const timeScale = /*[[${timeScale}]]*/ 'month';
+    const container = document.getElementById('chartContainer');
+    const ctx = document.getElementById('chartCanvas')?.getContext('2d');
+
+    function formatLabel(label) {
+        if (/^\d{4}-\d{2}$/.test(label)) {
+            const [y, m] = label.split('-');
+            const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+            return monthNames[parseInt(m)-1] + " " + y;
+        }
+        return label;
+    }
+
+    if (ctx) {
+        console.log("expensesData =", expensesData);
+        
+        let hasExpenses = false;
+        let hasBudgets = false;
+        function isEmptyData(data) {
+            if (!data || typeof data !== 'object') return true;
+            return Object.values(data).every(cat => !cat || Object.keys(cat).length === 0 || Object.values(cat).every(v => v === 0));
+        }
+        if (expensesData && typeof expensesData === 'object') {
+            hasExpenses = !isEmptyData(expensesData);
+        }
+        if (budgetsData && typeof budgetsData === 'object') {
+            hasBudgets = !isEmptyData(budgetsData);
+        }
+        console.log('expensesData:', expensesData);
+        console.log('budgetsData:', budgetsData);
+        console.log('hasExpenses:', hasExpenses);
+        console.log('hasBudgets:', hasBudgets);
+
+        const noDataMessage = document.getElementById('noDataMessage');
+        const noDataMessageBoth = document.getElementById('noDataMessageBoth');
+
+        window.addEventListener('DOMContentLoaded', function() {
+            noDataMessage.style.display = 'none';
+            noDataMessageBoth.style.display = 'none';
+          
+            function isFormSubmitted() {
+               
+                return new URLSearchParams(window.location.search).get('submitted') === 'true';
+            }
+            if (isFormSubmitted()) {
+                if (!hasExpenses && !hasBudgets) {
+                    showNoDataMessageBoth();
+                } else if (!hasExpenses) {
+                    showNoDataMessage();
+                } else {
+                    hideNoDataMessage();
+                   
+                }
+            } else {
+                hideNoDataMessage();
+            }
+        });
+
+        function showNoDataMessage() {
+           
+            let categoryName = '';
+            let periodText = '';
+            const categorySelectSingle = document.getElementById('categorySelectSingle');
+            const compareCategory1 = document.getElementById('compareCategory1');
+            const graphType = form.querySelector('input[name="graphType"]:checked')?.value;
+            if (graphType === 'single') {
+                categoryName = categorySelectSingle.options[categorySelectSingle.selectedIndex]?.text || '';
+            } else if (graphType === 'compare') {
+                categoryName = compareCategory1.options[compareCategory1.selectedIndex]?.text || '';
+            }
+          
+            const periodType = form.querySelector('input[name="periodType"]:checked')?.value;
+            if (periodType === 'month') {
+                const singleMonth = form.querySelector('input[name="singleMonth"]').value;
+                periodText = singleMonth ? formatLabel(singleMonth) : '';
+            } else if (periodType === 'range') {
+                const start = form.querySelector('input[name="startMonth"]').value;
+                const end = form.querySelector('input[name="endMonth"]').value;
+                if (start && end) {
+                    periodText = formatLabel(start) + ' à ' + formatLabel(end);
+                }
+            }
+           
+            noDataMessage.textContent = `Aucune dépense trouvée pour la catégorie ${categoryName}${periodText ? ' et la période ' + periodText : ''}.`;
+            noDataMessage.style.display = 'block';
+            noDataMessageBoth.style.display = 'none';
+            ctx.canvas.style.display = 'none';
+        }
+
+        function showNoDataMessageBoth() {
+            
+            const params = new URLSearchParams(window.location.search);
+            let categoryName = '';
+            let categoryName2 = '';
+            let periodText = '';
+            const graphType = params.get('graphType');
+            
+            if (graphType === 'single') {
+                const categoryId = params.get('category1');
+                const categorySelectSingle = document.getElementById('categorySelectSingle');
+                if (categorySelectSingle) {
+                    const opt = Array.from(categorySelectSingle.options).find(o => o.value === categoryId);
+                    categoryName = opt ? opt.text : '';
+                }
+            } else if (graphType === 'compare') {
+                const categoryId1 = params.get('category1');
+                const compareCategory1 = document.getElementById('compareCategory1');
+                if (compareCategory1) {
+                    const opt1 = Array.from(compareCategory1.options).find(o => o.value === categoryId1);
+                    categoryName = opt1 ? opt1.text : '';
+                }
+                
+                if (categoryId1 !== '-1') {
+                    const categoryId2 = params.get('category2');
+                    const compareCategory2 = document.getElementById('compareCategory2');
+                    if (compareCategory2) {
+                        const opt2 = Array.from(compareCategory2.options).find(o => o.value === categoryId2);
+                        categoryName2 = opt2 ? opt2.text : '';
+                    }
+                } else {
+                    categoryName2 = '';
+                }
+            }
+            
+            const periodType = params.get('periodType');
+            
+            const fullMonthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+            function formatFullMonth(label) {
+                if (/^\d{4}-\d{2}$/.test(label)) {
+                    const [y, m] = label.split('-');
+                    return fullMonthNames[parseInt(m)-1] + ' ' + y;
+                }
+                return label;
+            }
+            if (periodType === 'month') {
+                const singleMonth = params.get('singleMonth');
+                periodText = singleMonth ? formatFullMonth(singleMonth) : '';
+            } else if (periodType === 'range') {
+                const start = params.get('startMonth');
+                const end = params.get('endMonth');
+                if (start && end) {
+                    periodText = formatFullMonth(start) + ' à ' + formatFullMonth(end);
+                }
+            }
+            
+            let message = 'Aucune dépense et aucun budget trouvés';
+            if (graphType === 'compare' && categoryName && categoryName2 && categoryName2 !== '' && categoryName !== 'Toutes les catégories') {
+                message += ' pour la catégorie ' + categoryName + ' et ' + categoryName2;
+            } else if (categoryName) {
+                message += ' pour la catégorie ' + categoryName;
+            }
+            if (periodText) {
+                message += ' durant la période ' + periodText;
+            }
+            message += '.';
+            noDataMessageBoth.textContent = message;
+            noDataMessage.style.display = 'none';
+            noDataMessageBoth.style.setProperty('display', 'block', 'important');
+            ctx.canvas.style.display = 'none';
+        }
+
+        function hideNoDataMessage() {
+            noDataMessage.style.display = 'none';
+            noDataMessageBoth.style.display = 'none';
+            ctx.canvas.style.display = 'block';
+        }
+
+        if (!hasExpenses && !hasBudgets) {
+            showNoDataMessageBoth();
+        } else if (!hasExpenses) {
+            showNoDataMessage();
+        } else {
+            hideNoDataMessage();
+            let chartData;
+            let chartConfig;
+
+            if (chartKind === 'pie') {
+                container.classList.add('pie-mode');
+                container.classList.remove('line-mode');
+                const catNames = Object.keys(expensesData.ALL || {});
+                const catValues = Object.values(expensesData.ALL || {});
+                chartData = { labels: catNames, datasets: [{ data: catValues, backgroundColor:['#1e3a8a','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe']} ] };
+                chartConfig = {
+                    type: 'pie',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels:{padding:15, font:{size:13}} },
+                            datalabels: {
+                                formatter: (value, ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percent = (value / total) * 100;
+                                    let percentStr = Number.isInteger(percent) ? percent.toString() : percent.toFixed(1);
+                                    return `${value.toLocaleString('fr-FR')}
+(${percentStr}%)`;
+                                },
+                                color: 'white',
+                                font: {
+                                    weight: 'bold',
+                                    size: 13
+                                }
+                            },
+                            tooltip:{
+                                backgroundColor:'rgba(255,255,255,0.95)',
+                                titleColor:'#0f172a',
+                                bodyColor:'#475569',
+                                borderColor:'rgba(148, 163, 184, 0.3)',
+                                borderWidth:1,
+                                padding:12,
+                                callbacks:{
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += context.parsed.toLocaleString('fr-FR');
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                };
+            } else {
+                container.classList.remove('pie-mode');
+                container.classList.add('line-mode');
+                const datasets = [];
+                const allLabels = new Set();
+
+                Object.values(expensesData).forEach(d => Object.keys(d).forEach(l => allLabels.add(l)));
+                const sortedLabels = Array.from(allLabels).sort();
+                const formattedLabels = sortedLabels.map(formatLabel);
+                const colors=['#3498db','#e74c3c','#f1c40f','#2ecc71','#9b59b6','#1abc9c'];
+                let colorIndex=0;
+
+                Object.entries(expensesData).forEach(([cat,data])=>{
+                    const color=colors[colorIndex%colors.length];
+                    const values=sortedLabels.map(l=>data[l]||null);
+                    datasets.push({label:cat+' - Dépenses', data:values, borderColor:color, backgroundColor:color+'33', tension:0.3});
+                    colorIndex++;
+                });
+
+                Object.entries(budgetsData).forEach(([cat,data])=>{
+                    const color=colors[colorIndex%colors.length];
+                    const values=sortedLabels.map(l=>data[l]||null);
+                    datasets.push({label:cat+' - Budget', data:values, borderColor:color, borderDash:[5,5]});
+                    colorIndex++;
+                });
+
+                chartConfig={
+                    type:'line',
+                    data:{labels:formattedLabels,datasets},
+                    options:{
+                        responsive:true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales:{
+                            x:{
+                                title:{display:true,text:'Période'},
+                                grid:{color:'rgba(148, 163, 184, 0.1)'}
+                            },
+                            y:{
+                                title:{display:true,text:'Montant'},
+                                grid:{color:'rgba(148, 163, 184, 0.1)'},
+                                ticks:{
+                                    callback: function(value) {
+                                        return value.toLocaleString('fr-FR');
+                                    }
+                                }
+                            }
+                        },
+                        plugins:{
+                            legend:{position:'top', labels:{padding:15, font:{size:13}}},
+                            tooltip:{
+                                backgroundColor:'rgba(255,255,255,0.95)',
+                                titleColor:'#0f172a',
+                                bodyColor:'#475569',
+                                borderColor:'rgba(148, 163, 184, 0.3)',
+                                borderWidth:1,
+                                padding:12,
+                                displayColors:true,
+                                callbacks:{
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y.toLocaleString('fr-FR');
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+            new Chart(ctx, chartConfig);
+        }
+    }
+    /*]]>*/
+</script>
+<footer>
+    <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+</footer>
+    <script>
+       
+        window.addEventListener('DOMContentLoaded', function() {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('submitted') === 'true') {
+                url.searchParams.delete('submitted');
+                window.history.replaceState({}, document.title, url.pathname + url.search);
+            }
+        });
+    </script>
+
+</body>
+</html>

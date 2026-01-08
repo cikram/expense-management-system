@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Modifier administrateur - FINEO</title>
+	<style>
+		
+		:root {
+			--blue-main: #2563eb;
+			--blue-dark: #1e40af;
+			--blue-deep: #111827;
+			--glass-border: rgba(37, 99, 235, 0.18);
+			--glass-bg: rgba(255, 255, 255, 0.92);
+			--color-danger: #ef4444;
+		}
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+			background:
+				radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+				radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+				linear-gradient(180deg, 
+					#f8fafc 0%,
+					#eff6ff 25%,
+					#dbeafe 45%,
+					#ffffff 65%,
+					#ffffff 100%);
+			color: #1e293b;
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 14px 28px;
+			background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+			backdrop-filter: blur(16px);
+			border-bottom: 1px solid var(--glass-border);
+			position: sticky;
+			top: 0;
+			z-index: 10;
+		}
+		.logo {
+			font-size: 20px;
+			font-weight: 700;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+		nav {
+			display: flex;
+			gap: 28px;
+			align-items: center;
+		}
+		nav a {
+			color: #475569;
+			text-decoration: none;
+			font-size: 14px;
+			transition: color 0.2s ease;
+		}
+		nav a:hover {
+			color: var(--blue-dark);
+		}
+		.profile-menu {
+			position: relative;
+			display: flex;
+			align-items: center;
+			overflow: visible;
+			z-index: 20;
+		}
+		.profile-button {
+			background: transparent;
+			color: #475569;
+			cursor: pointer;
+			border: none;
+			display: flex;
+			align-items: center;
+			padding: 6px 10px;
+			border-radius: 6px;
+			transition: all 0.2s ease;
+		}
+		.profile-button:hover {
+			background: var(--blue-dark);
+			color: #fff;
+		}
+		.profile-icon {
+			width: 20px;
+			height: 20px;
+			margin-right: 5px;
+		}
+		.logout-menu {
+			display: none;
+			position: absolute;
+			top: 55px;
+			right: 0;
+			background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+			border: 1px solid var(--glass-border);
+			border-radius: 8px;
+			padding: 8px 0;
+			backdrop-filter: blur(16px);
+			z-index: 1000;
+			min-width: 180px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+			overflow: visible;
+		}
+		.logout-menu.active {
+			display: block;
+		}
+		.logout-menu button,
+		.logout-link {
+			width: 100%;
+			display: block;
+			background: transparent;
+			color: #475569;
+			border: none;
+			padding: 10px 14px;
+			border-radius: 4px;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			text-align: left;
+			text-decoration: none;
+			box-sizing: border-box;
+		}
+		.logout-link.logout-link-danger {
+			color: #e11d48;
+		}
+		.logout-link:hover {
+			background: var(--blue-dark);
+			color: #ffffff;
+		}
+		.content {
+			flex: 1;
+			padding: 0 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+		}
+		footer {
+			background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+			border-top: 1px solid var(--glass-border);
+			padding: 14px 0;
+			text-align: center;
+		}
+		.footer-bottom {
+			color: #64748b;
+			font-size: 14px;
+		}
+	</style>
+</head>
+<body>
+<header>
+	<div class="logo"><span>FINEO</span></div>
+	<nav>
+		<a href="/admin/home">Dashboard</a>
+		<a href="/admin/users">Utilisateurs</a>
+		<a href="/admin/admins">Administrateurs</a>
+	</nav>
+	<div class="profile-menu">
+		<button class="profile-button" id="profileBtn">
+			<svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+				<path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+			</svg>
+		</button>
+		<div class="logout-menu" id="logoutMenu">
+			<a href="/admin/profile" class="logout-link">Mon profil</a>
+			<form action="/logout" method="post" style="margin: 0;">
+				<button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+			</form>
+		</div>
+	</div>
+</header>
+<div class="content">
+	<div class="form-card" style="width: 380px; padding: 20px 18px 18px 18px; background: var(--glass-bg, #fff); border-radius: 12px; box-shadow: 0 4px 24px rgba(37,99,235,0.10); border: 1px solid var(--glass-border, #e0e7ef);">
+		<h2 style="margin-bottom: 16px; font-size: 18px; font-weight: 700; color: var(--blue-dark, #1e40af); letter-spacing:0.5px;">Modification d'un administrateur</h2>
+		<p th:if="${errorMessage}" class="error" th:text="${errorMessage}" style="color:#dc2626; margin-bottom:10px; font-size:14px;"></p>
+		<form th:object="${admin}" method="post" autocomplete="off">
+			<input type="text" th:field="*{username}" placeholder="Nom d'utilisateur" required 
+				style="width:100%; padding:10px 12px; margin-bottom:12px; border:1.5px solid #cbd5e1; border-radius:7px; font-size:13px; background: #f8fafc; color:#1e293b; transition: border 0.2s; outline:none;"
+				onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e1'">
+			<input type="email" th:field="*{email}" placeholder="Email" required 
+				style="width:100%; padding:10px 12px; margin-bottom:12px; border:1.5px solid #cbd5e1; border-radius:7px; font-size:13px; background: #f8fafc; color:#1e293b; transition: border 0.2s; outline:none;"
+				onfocus="this.style.borderColor='#2563eb'" onblur="this.style.borderColor='#cbd5e1'">
+			<button type="submit" style="width:110px; padding:9px 0; background: linear-gradient(135deg, #2563eb, #1e40af); color:white; border-radius:7px; border:none; font-size:14px; font-weight:400; letter-spacing:0.5px; box-shadow:0 2px 8px rgba(37,99,235,0.08); cursor:pointer; transition:background 0.2s;">Enregistrer</button>
+		</form>
+	</div>
+</div>
+<footer>
+	<div class="footer-bottom">
+		<p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+	</div>
+</footer>
+<script>
+	const profileBtn = document.getElementById('profileBtn');
+	const logoutMenu = document.getElementById('logoutMenu');
+	profileBtn.addEventListener('click', (e) => {
+		e.stopPropagation();
+		logoutMenu.classList.toggle('active');
+	});
+	document.addEventListener('click', (e) => {
+		if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+			logoutMenu.classList.remove('active');
+		}
+	});
+</script>
+</body>
+</html>

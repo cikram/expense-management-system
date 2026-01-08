@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil Utilisateur - FINEO</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --blue-glow: #3b82f6;
+            --glass-bg: rgba(37, 99, 235, 0.045);
+            --glass-border: rgba(37, 99, 235, 0.18);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        .top-gradient {
+            background:
+                    radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                    radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                    linear-gradient(135deg, #f8fafc, #eff6ff, #dbeafe);
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .top-gradient::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -20px;
+            height: 140px;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, #f8fafc 100%);
+            pointer-events: none;
+        }
+
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 35px;
+            background: linear-gradient(
+                    135deg,
+                    rgba(248, 250, 252, 0.95),
+                    rgba(239, 246, 255, 0.95)
+            );
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo span { color: var(--blue-dark); }
+
+        nav {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover { color: var(--blue-dark); }
+
+        .profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .profile-button:hover { 
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+        .profile-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: -5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0;
+            backdrop-filter: blur(16px);
+            z-index: 1000;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-menu.active {
+            display: block;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logout-menu a.profile-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+            
+        .logout-menu a.profile-link:hover {
+            background: #e0e7ff;
+            color: #1e40af;
+        }
+        .logout-menu button {
+            width: 100%;
+            display: block;
+            background: transparent;
+             color: #b91c1c;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+        .logout-menu button:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 50px 0 20px;
+            font-size: 32px;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            color: var(--blue-dark);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .gradient-title {
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .summary-cards { 
+            text-align: center;
+            padding: 20px 50px;
+        }
+
+        .summary-card {
+            display: inline-block;
+            padding: 30px;
+            margin: 15px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 249, 255, 0.6));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .summary-card:hover {
+            border-color: var(--blue-dark);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(224, 242, 254, 0.8));
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        }
+
+        .summary-card h2 {
+            color: #000000;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .summary-card p {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 50px;
+            gap: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .empty-state {
+            margin: 40px auto;
+            padding: 36px 32px;
+            background: transparent;
+            border-radius: 0;
+            text-align: center;
+            box-shadow: none;
+            border: none;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: #475569;
+            margin-bottom: 26px;
+            font-size: 14px;
+        }
+
+        .empty-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 13px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            letter-spacing: 0.1px;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #ffffff;
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.26);
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #ffffff;
+            border-color: var(--blue-dark);
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.26);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.22);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 24px;
+        }
+
+        .difference { color: #16a34a; }
+        .difference.negative { color: #dc2626; }
+
+        canvas {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 249, 255, 0.6));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
+        }
+
+        
+        #expensesPieChart {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 10px;
+            box-shadow: none;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 50px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 60px;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coin-container {
+            position: relative;
+            width: 520px;
+            height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 40px;
+        }
+
+        .coin-image {
+            width: 100%;
+            height: 100%;
+        }
+
+        .coin-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hero h2 {
+            font-size: 50px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 30px;
+            margin-top: 40px;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 0 4px;
+            display: block;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+            margin-left:40px;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            margin-left:40px;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            max-width: 700px;
+            margin-left: 32px;
+            margin-right: auto;
+        }
+
+        
+        .features {
+            padding: 40px 50px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 249, 255, 0.7));
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            padding: 24px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: grid;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .feature-card:hover {
+            border-color: var(--blue-dark);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(224, 242, 254, 0.85));
+            transform: translateY(-6px);
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.12);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+
+        .feature-card p {
+            color: #475569;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            nav { gap: 20px; font-size: 12px; }
+            header { padding: 15px 20px; }
+            h1 { font-size: 24px; }
+            .summary-cards { padding: 20px; }
+            .chart-container { padding: 20px; }
+            .hero { 
+                padding: 40px 20px 30px;
+                flex-direction: column;
+                gap: 30px;
+            }
+            .hero h2 { font-size: 28px; }
+            .hero-visual { height: 200px; }
+            .coin-container { width: 150px; height: 150px; }
+            .coin-image { width: 120px; height: 120px; }
+            .features { padding: 30px 20px 10px; }
+            .section-title { font-size: 22px; }
+        }
+
+        footer {
+            background: linear-gradient(
+                    180deg,
+                    rgba(239, 246, 255, 0.6) 0%,
+                    rgba(248, 250, 252, 0.85) 30%,
+                    rgba(249, 250, 251, 1) 100%
+            );
+            border-top: 1px solid var(--glass-border);
+            padding: 20px 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/budgets">Budgets</a>
+        <a href="/expenses">Dépenses</a>
+        <a href="/categories">Catégories</a>
+        <a href="/reports">Rapports</a>
+        <a href="/statistics">Statistiques</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a href="/users/profile" class="profile-link">Mon Profil</a>
+            <form th:action="@{/logout}" method="post" style="margin:0;">
+                <button type="submit">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+
+<div class="top-gradient">
+
+<section class="hero">
+    <div class="hero-content">
+        <h2>Suivi et gestion avancée de vos finances en toute simplicité</h2>
+        <p>Suivez vos dépenses, gérez vos budgets et visualisez vos finances en temps réel. Gardez le contrôle total de votre argent.</p>
+    </div>
+    <div class="hero-visual">
+        <div class="coin-container">
+            <div class="coin-image">
+                <img src="/images/coin.png" alt="Coin" />
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="features">
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="15" width="60" height="70" rx="3" fill="rgba(255,255,255,0.1)" stroke="var(--blue-dark)" stroke-width="1.5"/>
+                    <line x1="25" y1="25" x2="75" y2="25" stroke="var(--blue-dark)" stroke-width="1"/>
+                    <line x1="25" y1="35" x2="75" y2="35" stroke="var(--blue-dark)" stroke-width="1" opacity="0.7"/>
+                    <line x1="25" y1="43" x2="75" y2="43" stroke="var(--blue-dark)" stroke-width="1" opacity="0.7"/>
+                    <line x1="25" y1="51" x2="70" y2="51" stroke="var(--blue-dark)" stroke-width="1" opacity="0.7"/>
+                    <line x1="25" y1="59" x2="65" y2="59" stroke="var(--blue-dark)" stroke-width="1" opacity="0.5"/>
+                    <line x1="25" y1="67" x2="60" y2="67" stroke="var(--blue-dark)" stroke-width="1" opacity="0.5"/>
+                    <circle cx="28" cy="77" r="1" fill="var(--blue-dark)" opacity="0.5"/>
+                    <circle cx="50" cy="77" r="1" fill="var(--blue-dark)" opacity="0.5"/>
+                    <circle cx="72" cy="77" r="1" fill="var(--blue-dark)" opacity="0.5"/>
+                </svg>
+            </div>
+            <h3>Suivi des dépenses</h3>
+            <p>Enregistrez et consultez vos dépenses par catégorie en quelques clics.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="25" fill="none" stroke="var(--blue-dark)" stroke-width="1.5" opacity="0.7"/>
+                    <circle cx="50" cy="50" r="15" fill="none" stroke="var(--blue-dark)" stroke-width="1.5" opacity="0.5"/>
+                    <circle cx="50" cy="50" r="5" fill="var(--blue-dark)"/>
+                    <line x1="50" y1="30" x2="50" y2="70" stroke="var(--blue-dark)" stroke-width="1" opacity="0.4"/>
+                    <line x1="30" y1="50" x2="70" y2="50" stroke="var(--blue-dark)" stroke-width="1" opacity="0.4"/>
+                </svg>
+            </div>
+            <h3>Budgets personnalisés</h3>
+            <p>Créez des plafonds par catégorie et suivez votre progression mensuelle.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="55" width="12" height="30" fill="var(--blue-dark)" rx="2"/>
+                    <rect x="36" y="40" width="12" height="45" fill="var(--blue-dark)" opacity="0.8" rx="2"/>
+                    <rect x="52" y="30" width="12" height="55" fill="var(--blue-dark)" opacity="0.9" rx="2"/>
+                    <rect x="68" y="45" width="12" height="40" fill="var(--blue-dark)" opacity="0.7" rx="2"/>
+                    <line x1="15" y1="87" x2="85" y2="87" stroke="var(--blue-dark)" stroke-width="1.5" opacity="0.5"/>
+                </svg>
+            </div>
+            <h3>Statistiques claires</h3>
+            <p>Visualisez vos dépenses et budgets avec des graphiques synthétiques.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 50 20 Q 70 20 70 35 L 70 55 Q 70 65 50 70 Q 30 65 30 55 L 30 35 Q 30 20 50 20" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <rect x="45" y="70" width="10" height="8" fill="var(--blue-dark)" rx="1"/>
+                    <circle cx="65" cy="30" r="5" fill="#ec4899"/>
+                    <circle cx="65" cy="30" r="3" fill="#ff1744" opacity="0.8"/>
+                    <circle cx="65" cy="30" r="8" fill="none" stroke="#ec4899" stroke-width="1" opacity="0.5"/>
+                </svg>
+            </div>
+            <h3>Alertes intelligentes</h3>
+            <p>Recevez des rappels avant de dépasser vos limites et restez toujours en contrôle.</p>
+        </div>
+    </div>
+</section>
+
+</div>
+
+
+<h1 th:text="'Aperçu du ' + ${monthToDisplay}"></h1>
+
+<div class="summary-cards">
+    <div class="summary-card">
+        <h2>Budget Total</h2>
+        <p th:text="${totalBudget} ">0.00</p>
+    </div>
+    <div class="summary-card">
+        <h2>Dépenses Totales</h2>
+        <p th:text="${totalExpenses} ">0.00 </p>
+    </div>
+    <div class="summary-card">
+        <h2>Différence</h2>
+        <p th:classappend="${difference < 0} ? 'difference negative' : 'difference'"
+           th:text="${difference}  ">0.00 </p>
+    </div>
+</div>
+
+<div th:if="${hasFinancialData}" class="chart-container">
+    <div>
+        <h3 class="gradient-title" style="text-align:center;">Répartition des dépenses par catégorie</h3>
+        <canvas id="expensesPieChart" width="250" height="250"></canvas>
+    </div>
+
+    <div>
+        <h3 class="gradient-title" style="text-align:center;">Évolution des dépenses</h3>
+        <canvas id="monthlyLineChart" width="600" height="300"></canvas>
+    </div>
+</div>
+
+<section th:if="${!hasFinancialData}" class="empty-state">
+    <h3 class="gradient-title">Aucune donnée pour l'instant</h3>
+    <p>Aucune dépense ni budget n'est enregistré pour ce mois. Ajoutez vos premières données pour voir les graphiques.</p>
+    <div class="empty-actions">
+        <a class="action-btn primary" href="/expenses">+ Ajouter une dépense</a>
+        <a class="action-btn secondary" href="/budgets">+ Ajouter un budget</a>
+        <a class="action-btn secondary" href="/categories">+ Ajouter une catégorie</a>
+    </div>
+</section>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+<script th:inline="javascript">
+ 
+    const profileBtn = document.getElementById('profileBtn');
+    const logoutMenu = document.getElementById('logoutMenu');
+
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logoutMenu.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+            logoutMenu.classList.remove('active');
+        }
+    });
+
+    
+    const hasFinancialData = /*[[${hasFinancialData}]]*/ false;
+
+    if (hasFinancialData) {
+        const expensesByCategory = /*[[${expensesByCategory}]]*/ {};
+        const labels = Object.keys(expensesByCategory);
+        const data = Object.values(expensesByCategory);
+        const expensesPieChart = document.getElementById('expensesPieChart');
+
+        if (expensesPieChart && labels.length > 0) {
+            new Chart(expensesPieChart, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#1e3a8a','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe']
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#475569' } },
+                        datalabels: {
+                            color: '#fff',
+                            formatter: (value, ctx) => {
+                                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                let pct = total > 0 ? (value / total * 100) : 0;
+                                let pctStr = (pct % 1 === 0) ? pct.toFixed(0) : pct.toFixed(1);
+                                return `${value} \n(${pctStr}%)`;
+                            },
+                            font: { weight: 'bold', size: 11 }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        console.log("lastMonthLabelsJson =", /*[[${lastMonthLabelsJson}]]*/ "null");
+        console.log("lastMonthValuesJson =", /*[[${lastMonthValuesJson}]]*/ "null");
+        console.log("lastMonthName =", /*[[${lastMonthName}]]*/ "null");
+
+        const lastMonthLabels = JSON.parse(/*[[${lastMonthLabelsJson}]]*/ "[]");
+        const lastMonthValues = JSON.parse(/*[[${lastMonthValuesJson}]]*/ "[]");
+        const lastMonthName = /*[[${lastMonthName}]]*/ null;
+        const monthlyLineChart = document.getElementById('monthlyLineChart');
+
+        if (!monthlyLineChart || !lastMonthLabels || lastMonthLabels.length === 0) {
+            if (monthlyLineChart) {
+                monthlyLineChart.style.display = 'none';
+            }
+        } else {
+            monthlyLineChart.style.display = 'block';
+
+            const ctx = monthlyLineChart.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(30, 64, 175, 0.4)');
+            gradient.addColorStop(0.5, 'rgba(37, 99, 235, 0.2)');
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: lastMonthLabels,
+                    datasets: [{
+                        label: "Dépenses du mois " + lastMonthName,
+                        data: lastMonthValues,
+                        fill: true,
+                        backgroundColor: gradient,
+                        borderColor: '#1e40af',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#1e40af',
+                        pointBorderWidth: 2,
+                        pointHoverBackgroundColor: '#1e40af',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#475569',
+                                font: { size: 13, weight: '600' },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(30, 64, 175, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            padding: 12,
+                            borderColor: '#1e40af',
+                            borderWidth: 2,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#475569',
+                                font: { size: 12, weight: '500' }
+                            },
+                            grid: {
+                                color: 'rgba(37, 99, 235, 0.1)',
+                                drawBorder: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#475569',
+                                font: { size: 12, weight: '500' },
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(37, 99, 235, 0.1)',
+                                drawBorder: false
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+
+<footer>
+    <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+</footer>
+
+</body>
+</html>
+
+
+
+

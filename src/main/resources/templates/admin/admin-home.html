@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - FINEO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(180deg, 
+                    #f8fafc 0%,
+                    #eff6ff 25%,
+                    #dbeafe 45%,
+                    #ffffff 65%,
+                    #ffffff 100%);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: var(--blue-dark);
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-right a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        .nav-right a:hover {
+            color: var(--blue-dark);
+        }
+
+        .profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: visible;
+            z-index: 20;
+        }
+
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .profile-button:hover {
+            background: var(--blue-dark);
+            color: #fff;
+        }
+
+        .profile-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 0;
+            backdrop-filter: blur(16px);
+            z-index: 1000;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+
+        .logout-menu.active {
+            display: block;
+        }
+
+        .logout-menu button,
+        .logout-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .logout-link.logout-link-danger {
+            color: #e11d48;
+        }
+        .logout-link:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 100px 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 60px;
+        }
+
+        .hero-content {
+            flex: 1;
+            overflow: visible;
+        }
+
+        .hero h1 {
+            font-size: 50px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 0 4px;
+            display: block;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--blue-dark);
+            color: #ffffff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-main);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.3);
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .crypto-container {
+            position: relative;
+            width: 550px;
+            height: 550px;
+        }
+
+        .crypto-coin {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 550px;
+            height: 550px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .coin-1 {
+            top: 20px;
+            left: 60px;
+        }
+
+        .cards-container {
+            display: grid;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 50px 40px;
+        }
+
+        .cards-container.top-row {
+            grid-template-columns: repeat(3, minmax(130px, 1fr));
+            max-width: 900px;
+        }
+
+        .cards-container.bottom-row {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+
+        .analysis-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 50px 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 24px;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cards-container.top-row .card {
+            padding: 14px;
+            gap: 6px;
+        }
+
+        .cards-container.top-row .card h3 {
+            font-size: 14px;
+        }
+
+        .cards-container.top-row .card .card-value {
+            font-size: 22px;
+        }
+
+        .analysis-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px 50px 10px;
+        }
+
+        .analysis-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--blue-dark);
+            margin-bottom: 16px;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .analysis-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+            display: grid;
+            gap: 10px;
+        }
+
+        .analysis-card h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+
+        .analysis-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .analysis-note {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .preview-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 50px 40px;
+        }
+
+        .features-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 50px 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 249, 255, 0.6));
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 32px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            border-color: var(--blue-dark);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(224, 242, 254, 0.8));
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--blue-dark);
+        }
+
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feature-card li {
+            font-size: 14px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-card li::before {
+            content: '•';
+            color: var(--blue-main);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .users-table {
+            width: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+        }
+
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead {
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.08), rgba(37, 99, 235, 0.05));
+        }
+
+        .users-table th {
+            text-align: left;
+            padding: 16px 20px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--blue-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .users-table td {
+            padding: 16px 20px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+        .users-table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.03);
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-details h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--blue-dark);
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 26px;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.10);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card.compact {
+            padding: 20px;
+            gap: 10px;
+        }
+
+        .card.clickable-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover,
+        .card.clickable-card:hover {
+            border-color: var(--blue-main);
+            box-shadow: 0 14px 36px rgba(37, 99, 235, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--blue-dark);
+            margin: 0;
+        }
+
+        .card.compact h3 {
+            font-size: 14px;
+        }
+
+        .card-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+
+        .card.compact .card-value {
+            font-size: 28px;
+        }
+
+        .card.compact .card-value.category-name {
+            font-size: 28px;
+        }
+
+        .card-note {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .card.compact .btn {
+            display: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+        }
+
+        .btn-secondary {
+            background: rgba(37,99,235,0.08);
+            color: var(--blue-dark);
+            border: 1px solid rgba(37,99,235,0.18);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(37,99,235,0.12);
+        }
+
+        footer {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 60px;
+            margin-bottom: 20px;
+        }
+
+        .footer-section h4 {
+            color: var(--blue-dark);
+            margin-bottom: 20px;
+            font-size: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .footer-section a {
+            display: block;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--blue-dark);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 14px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .hero {
+                flex-direction: column;
+                padding: 50px 20px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero-visual {
+                height: 300px;
+            }
+
+            .cards-container {
+                padding: 0 20px 40px;
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/admin/home">Dashboard</a>
+        <a href="/admin/users">Utilisateurs</a>
+        <a href="/admin/admins">Administrateurs</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a href="/admin/profile" class="logout-link">Mon profil</a>
+            <form action="/logout" method="post" style="margin: 0;">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Pilotez l'activité de la plateforme en toute simplicité</h1>
+        <p>Gérez efficacement les utilisateurs et administrateurs de votre plateforme. Consultez les statistiques et maintenez le contrôle total de votre application.</p>
+        <div class="hero-buttons">
+            <a href="/admin/users" class="btn-primary">Gérer les utilisateurs</a>
+            <a href="/admin/admins" class="btn-primary">Gérer les administrateurs</a>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="crypto-container">
+            <div class="crypto-coin" style="position:absolute;top:55%;left:50%;transform:translate(-50%,-50%);width:550px;height:550px;">
+                <img src="/images/coin.png" alt="Coin" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="cards-container top-row">
+    <div class="card compact">
+        <h3>Total Utilisateurs</h3>
+        <div class="card-value" th:text="${totalUsers}">0</div>
+    </div>
+
+    <div class="card compact">
+        <h3>Total Administrateurs</h3>
+        <div class="card-value" th:text="${totalAdmins}">0</div>
+    </div>
+
+    <div class="card compact clickable-card" onclick="window.location.href='/admin/categories'">
+        <h3>Total Catégories</h3>
+        <div class="card-value" th:text="${totalCategories}">0</div>
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">Fonctionnalités</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="35" r="15" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <path d="M 25 85 Q 25 60 50 60 Q 75 60 75 85" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <circle cx="50" cy="35" r="8" fill="var(--blue-dark)" opacity="0.3"/>
+                </svg>
+            </div>
+            <h3>Gestion des utilisateurs</h3>
+            <ul>
+                <li>Comptes actifs</li>
+                <li>Rôles définis</li>
+                <li>Accès sécurisé</li>
+            </ul>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="25" width="25" height="25" rx="3" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <rect x="55" y="25" width="25" height="25" rx="3" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <rect x="20" y="60" width="25" height="25" rx="3" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                    <rect x="55" y="60" width="25" height="25" rx="3" fill="none" stroke="var(--blue-dark)" stroke-width="2"/>
+                </svg>
+            </div>
+            <h3>Gestion des catégories</h3>
+            <ul>
+                <li>Catégories organisées</li>
+                <li>Budgets associés</li>
+                <li>Suivi mensuel</li>
+            </ul>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 100 100" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="55" width="12" height="30" fill="var(--blue-dark)" rx="2"/>
+                    <rect x="36" y="40" width="12" height="45" fill="var(--blue-dark)" opacity="0.8" rx="2"/>
+                    <rect x="52" y="30" width="12" height="55" fill="var(--blue-dark)" opacity="0.9" rx="2"/>
+                    <rect x="68" y="45" width="12" height="40" fill="var(--blue-dark)" opacity="0.7" rx="2"/>
+                    <line x1="15" y1="87" x2="85" y2="87" stroke="var(--blue-dark)" stroke-width="1.5" opacity="0.5"/>
+                </svg>
+            </div>
+            <h3>Suivi des dépenses</h3>
+            <ul>
+                <li>Dépenses centralisées</li>
+                <li>Vue par catégorie</li>
+                <li>Contrôle global</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="analysis-section">
+    <h2 class="section-title">Analyse des catégories</h2>
+</div>
+
+<div class="cards-container bottom-row">
+    <div class="card compact">
+        <h3>Catégorie la plus dépensée</h3>
+        <div class="card-value category-name" th:text="${topCategoryName}">Aucune dépense</div>
+        <div class="card-note" th:text="'Dépenses : ' + ${topCategoryAmount} + ' MAD'"></div>
+        <div class="card-note" th:text="${topCategoryMonth} != '' ? 'Mois : ' + ${topCategoryMonth} : 'Mois : --'"></div>
+    </div>
+
+    <div class="card compact clickable-card" onclick="window.location.href='/admin/overbudget'">
+        <h3>Catégorie la plus en dépassement</h3>
+        <div class="card-value category-name" th:text="${overBudgetCategory}">Aucun dépassement</div>
+        <div class="card-note" th:text="${overBudgetMonth} != '' ? 'Mois : ' + ${overBudgetMonth} : 'Mois : --'"></div>
+        <div class="card-note" th:text="${overBudgetPercentage} > 0 ? '+' + ${overBudgetPercentage} + ' %' : ''"></div>
+    </div>
+</div>
+
+<div class="preview-section">
+    <h2 class="section-title">Aperçu de la plateforme</h2>
+    <div class="users-table" style="margin-bottom: 48px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Catégories</th>
+                    <th>Budgets</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${recentUsers}">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar" th:text="${user.username.substring(0, 1).toUpperCase()}">U</div>
+                            <div class="user-details">
+                                <h4 th:text="${user.username}">Username</h4>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${user.email}">email@example.com</td>
+                    <td th:text="${user.categories.size()}">0</td>
+                    <td th:text="${user.budgets.size()}">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-section">
+            <h4>Produit</h4>
+            <a href="#">Fonctionnalités</a>
+            <a href="#">Pricing</a>
+            <a href="#">Sécurité</a>
+        </div>
+        <div class="footer-section">
+            <h4>Entreprise</h4>
+            <a href="#">À propos</a>
+            <a href="#">Blog</a>
+            <a href="#">Carrières</a>
+        </div>
+        <div class="footer-section">
+            <h4>Légal</h4>
+            <a href="#">Mentions légales</a>
+            <a href="#">Politique de confidentialité</a>
+            <a href="#">Conditions d'utilisation</a>
+        </div>
+        <div class="footer-section">
+            <h4>Nous Suivre</h4>
+            <a href="#">Twitter</a>
+            <a href="#">Instagram</a>
+            <a href="#">LinkedIn</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+    </div>
+</footer>
+
+<script>
+    const profileBtn = document.getElementById('profileBtn');
+    const logoutMenu = document.getElementById('logoutMenu');
+    
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logoutMenu.classList.toggle('active');
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+            logoutMenu.classList.remove('active');
+        }
+    });
+</script>
+
+</body>
+</html>

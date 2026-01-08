@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Budgets - FINEO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(135deg, #f8fafc, #eff6ff, #dbeafe);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover { color: var(--blue-dark); }
+
+
+        .profile-menu { position: relative; display: flex; align-items: center; }
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .profile-button:hover { background: var(--blue-dark); color: #fff; }
+        .profile-icon { width: 20px; height: 20px; margin-right: 5px; }
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: -5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0;
+            backdrop-filter: blur(16px);
+            z-index: 20;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .logout-menu.active { display: block; }
+        .logout-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+        .logout-link.logout-link-danger {
+            color: #e11d48;
+        }
+        .logout-link:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+        main { max-width: 1100px; margin: 40px auto 60px; padding: 0 24px; }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        p.lead {
+            color: #475569;
+            margin: 0 auto 24px auto;
+            line-height: 1.5;
+            max-width: 760px;
+            text-align: center;
+        }
+
+        form.budget-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            margin-bottom: 20px;
+        }
+
+        form.budget-form input,
+        form.budget-form select,
+        form.budget-form button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            font-size: 14px;
+        }
+
+        form.budget-form button {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        form.budget-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            align-items: end;
+            margin: 4px 0 18px;
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+
+        .filter-group label { font-size: 13px; color: #475569; }
+
+        .filter-group select,
+        .filter-group input[type="month"] {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .filter-actions { display: flex; gap: 8px; align-items: center; }
+
+        .filter-reset {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: #fff;
+            color: #1e293b;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .filter-reset:hover {
+            border-color: var(--blue-dark);
+            color: var(--blue-dark);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+        }
+
+        th, td { padding: 12px 14px; text-align: left; font-size: 14px; }
+        thead { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tbody tr { background: #ffffff; }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .pagination-info { color: #475569; font-size: 13px; }
+
+        .pagination-actions {
+            display: inline-flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: #ffffff;
+            color: #1e293b;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--blue-dark);
+            color: var(--blue-dark);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        footer {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 20px 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 60px;
+        }
+
+        .pagination-container {
+            margin-top: 30px;
+        }
+
+        .pagination-info {
+            margin-top: 0;
+            text-align: right;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+
+        .pagination-controls {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-controls a,
+        .pagination-controls span {
+            padding: 8px 12px;
+            margin: 2px;
+            text-decoration: none;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #475569;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .pagination-controls a:hover {
+            background-color: var(--blue-main);
+            color: white;
+            border-color: var(--blue-main);
+        }
+
+        .pagination-controls .active {
+            background-color: var(--blue-dark);
+            color: white;
+            border-color: var(--blue-dark);
+        }
+
+        .pagination-controls .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    </style>
+    <style>
+
+    .editable-input {
+        width: 100%;
+        padding: 8px !important;
+        border: 1px solid #2563eb !important;
+        border-radius: 6px !important;
+        font-size: 14px;
+        background: #fff;
+        color: #1e293b;
+        outline: none !important;
+        box-shadow: none !important;
+        transition: border 0.2s;
+    }
+    .editable-input:focus {
+        border-color: #1e40af !important;
+        box-shadow: none !important;
+    }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/budgets">Budgets</a>
+        <a href="/expenses">Dépenses</a>
+        <a href="/categories">Catégories</a>
+        <a href="/reports">Rapports</a>
+        <a href="/statistics">Statistiques</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a href="/users/profile" class="logout-link">Mon profil</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main>
+    <h1>Budgets</h1>
+    <p class="lead">Définissez vos budgets mensuels par catégorie. Fixez un montant maximum à ne pas dépasser pour chaque catégorie afin de mieux contrôler vos dépenses.</p>
+
+    <div class="filters" aria-label="Filtrer les budgets">
+        <div class="filter-group">
+            <label for="categoryFilter">Catégorie</label>
+            <select id="categoryFilter">
+                <option value="">Toutes les catégories</option>
+                <option th:each="cat : ${categories}" th:value="${cat.name}" th:text="${cat.name}"></option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="monthFilter">Mois</label>
+            <input id="monthFilter" type="month">
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="filter-reset" id="resetFilters">Réinitialiser</button>
+        </div>
+    </div>
+
+    <form class="budget-form" th:action="@{/budgets/add}" method="post" th:object="${budget}">
+        <input th:field="*{amount}" type="number" step="0.01" placeholder="Montant" required>
+        <input type="month" name="month" required>
+        <select name="categoryId" id="categoryId" required>
+            <option value="" disabled selected>Catégorie</option>
+            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+            <option value="add-category" style="color:blue;">+ Ajouter une catégorie</option>
+        </select>
+        <button>Définir</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>Catégorie</th>
+                <th>Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b,iter : ${budgets}" th:attr="data-category=${b.category.name},data-month=${b.month},data-id=${b.id}">
+            <td class="month-cell" th:text="${b.month}"></td>
+            <td class="category-cell" th:text="${b.category.name}"></td>
+            <td class="amount-cell" th:text="${b.amount}"></td>
+        </tr>
+        </tbody>
+
+
+    <div style="display:flex; justify-content:flex-start; margin-bottom:12px; gap:8px;">
+        <button id="editBudgetsBtn" style="background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 3px 8px rgba(37,99,235,0.11); transition:transform 0.2s,box-shadow 0.2s;" onclick="enableBudgetEditMode()">Modifier</button>
+            <button id="saveBudgetsBtn" style="display:none; background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="saveBudgetEdit()">
+                <svg style="width:20px;height:20px;vertical-align:middle;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Valider
+            </button>
+            <button id="cancelBudgetsBtn" style="display:none; background:rgba(37,99,235,0.08); color:var(--blue-dark); border:none; border-radius:8px;border-color :rgba(37,99,235,0.18); padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(244,63,94,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="cancelBudgetEdit()">Annuler</button>
+    </div>
+
+    </table>
+
+
+    <div id="paginationContainer" class="pagination-container">
+        <p id="paginationInfo" class="pagination-info"></p>
+        <div id="paginationControls" class="pagination-controls"></div>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+</footer>
+
+<script>
+
+
+    let budgetEditMode = false;
+    let editedRows = [];
+    let oldBudgetValues = [];
+
+    function enableBudgetEditMode() {
+        if (budgetEditMode) return;
+        budgetEditMode = true;
+        document.getElementById('editBudgetsBtn').style.display = 'none';
+        document.getElementById('saveBudgetsBtn').style.display = '';
+        document.getElementById('cancelBudgetsBtn').style.display = '';
+        editedRows = Array.from(document.querySelectorAll('table tbody tr'));
+        oldBudgetValues = [];
+        
+        if (!window.budgetCategories) {
+            fetch('/categories/list').then(res => res.json()).then(cats => { window.budgetCategories = cats; makeRowsEditable(); });
+        } else {
+            makeRowsEditable();
+        }
+    }
+
+    function makeRowsEditable() {
+        editedRows.forEach(row => {
+            const monthCell = row.querySelector('.month-cell');
+            const categoryCell = row.querySelector('.category-cell');
+            const amountCell = row.querySelector('.amount-cell');
+            oldBudgetValues.push({
+                row,
+                month: monthCell.textContent,
+                category: categoryCell.textContent,
+                amount: amountCell.textContent
+            });
+
+            monthCell.innerHTML = `<input type=\"month\" value=\"${monthCell.textContent}\" class=\"edit-month editable-input\" style=\"width:160px;max-width:100%;\">`;
+
+            let categories = window.budgetCategories || [];
+            let categoryOptions = '';
+            if (categories.length > 0) {
+                categories.forEach(cat => {
+                    const selected = cat.name === categoryCell.textContent ? 'selected' : '';
+                    categoryOptions += `<option value=\"${cat.id}\" ${selected}>${cat.name}</option>`;
+                });
+            } else {
+                categoryOptions = `<option selected>${categoryCell.textContent}</option>`;
+            }
+            categoryCell.innerHTML = `<select class=\"edit-category editable-input\">${categoryOptions}</select>`;
+
+            amountCell.innerHTML = `<input type=\"number\" step=\"0.01\" value=\"${amountCell.textContent}\" class=\"edit-amount editable-input\" style=\"width:90px;\">`;
+        });
+    }
+
+    function cancelBudgetEdit() {
+        if (!budgetEditMode) return;
+        budgetEditMode = false;
+        document.getElementById('editBudgetsBtn').style.display = '';
+        document.getElementById('saveBudgetsBtn').style.display = 'none';
+        document.getElementById('cancelBudgetsBtn').style.display = 'none';
+        
+        oldBudgetValues.forEach(val => {
+            val.row.querySelector('.month-cell').textContent = val.month;
+            val.row.querySelector('.category-cell').textContent = val.category;
+            val.row.querySelector('.amount-cell').textContent = val.amount;
+        });
+        oldBudgetValues = [];
+    }
+
+    function saveBudgetEdit() {
+        if (!budgetEditMode) return;
+
+        let updates = [];
+        editedRows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const month = row.querySelector('.edit-month').value;
+            const categoryId = row.querySelector('.edit-category').value;
+            const amount = row.querySelector('.edit-amount').value;
+
+            const old = oldBudgetValues.find(v => v.row === row);
+            if (old && (old.month !== month || old.category !== row.querySelector('.edit-category').selectedOptions[0].textContent || old.amount !== amount)) {
+                const formData = new FormData();
+                formData.append('id', id);
+                formData.append('month', month);
+                formData.append('categoryId', categoryId);
+                formData.append('amount', amount);
+                updates.push(fetch(`/budgets/update/${id}`, { method: 'POST', body: formData }));
+            }
+        });
+        Promise.all(updates).then(() => {
+
+            location.reload();
+        }).catch(() => {
+            alert('Erreur lors de la modification.');
+        });
+    }
+    const profileBtn = document.getElementById('profileBtn');
+    const logoutMenu = document.getElementById('logoutMenu');
+
+
+    const categorySelect = document.getElementById('categoryId');
+    let addCategoryModal = document.getElementById('addCategoryModal');
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            if (this.value === 'add-category') {
+                if (!addCategoryModal) {
+                   
+                    addCategoryModal = document.createElement('div');
+                    addCategoryModal.id = 'addCategoryModal';
+                    addCategoryModal.style.display = 'flex';
+                    addCategoryModal.style.position = 'fixed';
+                    addCategoryModal.style.top = '0';
+                    addCategoryModal.style.left = '0';
+                    addCategoryModal.style.width = '100vw';
+                    addCategoryModal.style.height = '100vh';
+                    addCategoryModal.style.background = 'rgba(0,0,0,0.4)';
+                    addCategoryModal.style.zIndex = '1000';
+                    addCategoryModal.style.alignItems = 'center';
+                    addCategoryModal.style.justifyContent = 'center';
+                    addCategoryModal.innerHTML = `
+                        <div style="background:rgba(255,255,255,0.95); border:1px solid var(--glass-border); border-radius:12px; padding:24px 28px; min-width:320px; max-width:95vw; box-shadow:0 8px 24px rgba(37,99,235,0.12); position:relative; font-family:inherit;">
+                            <span style="position:absolute; top:12px; right:18px; font-size:28px; color:#475569; cursor:pointer; font-weight:600;" onclick="closeAddCategoryModal()">&times;</span>
+                            <h3 style="font-size:22px; margin-bottom:18px; text-align:center; background:linear-gradient(135deg,#0f172a 0%,var(--blue-dark) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">Ajouter une catégorie</h3>
+                            <form id="addCategoryForm" action="/categories/add" method="post" style="display:grid; gap:14px;">
+                                <input name="name" type="text" placeholder="Nom de la catégorie" required style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(148,163,184,0.4); font-size:14px; background:#fff; color:#1e293b;">
+                                <input name="description" type="text" placeholder="Description" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(148,163,184,0.4); font-size:14px; background:#fff; color:#1e293b;">
+                                <button type="submit" style="padding:10px 28px; border-radius:8px; border:none; cursor:pointer; font-weight:400; font-size:13px; background:linear-gradient(135deg,var(--blue-dark),var(--blue-main)); color:#fff; box-shadow:0 4px 12px rgba(37,99,235,0.12);">Ajouter</button>
+                                <div id="addCategoryMessage" style="color:green; font-size:13px; margin-top:8px;"></div>
+                            </form>
+                        </div>
+                    `;
+                    document.body.appendChild(addCategoryModal);
+                } else {
+                    addCategoryModal.style.display = 'flex';
+                }
+                this.value = '';
+            }
+        });
+    }
+
+    function closeAddCategoryModal() {
+        if (addCategoryModal) addCategoryModal.style.display = 'none';
+    }
+
+
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.id === 'addCategoryForm') {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+                const messageDiv = form.querySelector('#addCategoryMessage');
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        if (messageDiv) messageDiv.textContent = 'Catégorie ajoutée avec succès !';
+                        
+                        const newCategoryName = formData.get('name');
+                        form.reset();
+                        closeAddCategoryModal();
+                        fetch('/categories/list')
+                            .then(res => res.json())
+                            .then(categories => {
+                                const categoryIdSelect = document.getElementById('categoryId');
+                                if (categoryIdSelect) {
+                                    categoryIdSelect.innerHTML = '';
+                                    const defaultOption = document.createElement('option');
+                                    defaultOption.value = '';
+                                    defaultOption.disabled = true;
+                                    defaultOption.textContent = 'Catégorie';
+                                    categoryIdSelect.appendChild(defaultOption);
+                                    let selectedId = null;
+                                    categories.forEach(cat => {
+                                        const option = document.createElement('option');
+                                        option.value = cat.id;
+                                        option.textContent = cat.name;
+                                        if (cat.name === newCategoryName) {
+                                            selectedId = cat.id;
+                                        }
+                                        categoryIdSelect.appendChild(option);
+                                    });
+
+                                    const addOption = document.createElement('option');
+                                    addOption.value = 'add-category';
+                                    addOption.style.color = 'blue';
+                                    addOption.textContent = '+ Ajouter une catégorie';
+                                    categoryIdSelect.appendChild(addOption);
+
+                                    if (selectedId) {
+                                        categoryIdSelect.value = selectedId;
+                                    }
+                                }
+
+                                const categoryFilterSelect = document.getElementById('categoryFilter');
+                                if (categoryFilterSelect) {
+                                    categoryFilterSelect.innerHTML = '';
+                                    const allOption = document.createElement('option');
+                                    allOption.value = '';
+                                    allOption.textContent = 'Toutes les catégories';
+                                    categoryFilterSelect.appendChild(allOption);
+                                    categories.forEach(cat => {
+                                        const option = document.createElement('option');
+                                        option.value = cat.name;
+                                        option.textContent = cat.name;
+                                        categoryFilterSelect.appendChild(option);
+                                    });
+                                }
+                            });
+                    } else {
+                        if (messageDiv) messageDiv.textContent = "Erreur lors de l'ajout.";
+                    }
+                })
+                .catch(() => {
+                    if (messageDiv) messageDiv.textContent = "Erreur lors de l'ajout.";
+                });
+            }
+        });
+
+    if (profileBtn) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            logoutMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+                logoutMenu.classList.remove('active');
+            }
+        });
+    }
+
+
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    const tableBody = document.querySelector('table tbody');
+    const allRows = tableBody ? Array.from(tableBody.querySelectorAll('tr')) : [];
+    let filteredRows = [...allRows];
+
+    const categoryFilter = document.getElementById('categoryFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    const resetFilters = document.getElementById('resetFilters');
+
+    function updatePagination() {
+        const totalItems = filteredRows.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        allRows.forEach(row => row.style.display = 'none');
+        filteredRows.forEach((row, index) => {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            if (index >= start && index < end) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+
+        const start = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+        const end = Math.min(currentPage * itemsPerPage, totalItems);
+        const paginationInfo = document.getElementById('paginationInfo');
+        if (paginationInfo) {
+            if (totalItems > 0) {
+                paginationInfo.textContent = `${start}-${end}/${totalItems}`;
+                paginationInfo.style.display = 'block';
+            } else {
+                paginationInfo.textContent = '';
+                paginationInfo.style.display = 'none';
+            }
+        }
+
+
+        const paginationContainer = document.getElementById('paginationContainer');
+        const paginationControls = document.getElementById('paginationControls');
+        
+        if (totalItems > itemsPerPage) {
+            if (paginationContainer) paginationContainer.style.display = 'block';
+            if (paginationControls) {
+                paginationControls.innerHTML = generatePaginationControls(totalPages);
+            }
+        } else {
+            if (paginationControls) paginationControls.innerHTML = '';
+        }
+    }
+
+    function generatePaginationControls(totalPages) {
+        let html = '';
+
+
+        if (totalPages > 2 && currentPage > 1) {
+            html += `<a onclick="goToPage(1)">⏮ Première</a>`;
+        }
+
+        if (currentPage > 1) {
+            html += `<a onclick="goToPage(${currentPage - 1})">◀ Précédent</a>`;
+        }
+
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (i >= currentPage - 2 && i <= currentPage + 2) {
+                const activeClass = i === currentPage ? 'active' : '';
+                html += `<span class="${activeClass}" onclick="goToPage(${i})">${i}</span>`;
+            }
+        }
+
+
+        if (currentPage < totalPages) {
+            html += `<a onclick="goToPage(${currentPage + 1})">Suivant ▶</a>`;
+        }
+
+
+        if (totalPages > 2 && currentPage < totalPages) {
+            html += `<a onclick="goToPage(${totalPages})">Dernière ⏭</a>`;
+        }
+
+        return html;
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        updatePagination();
+    }
+
+    function applyFilters() {
+        const categoryValue = (categoryFilter?.value || '').trim().toLowerCase();
+        const monthValue = (monthFilter?.value || '').trim();
+
+        filteredRows = allRows.filter((row) => {
+            const rowCategory = (row.dataset.category || '').toLowerCase();
+            const rowMonth = row.dataset.month || '';
+
+            const categoryMatch = categoryValue ? rowCategory === categoryValue : true;
+            const monthMatch = monthValue ? rowMonth === monthValue : true;
+            return categoryMatch && monthMatch;
+        });
+
+        currentPage = 1;
+        updatePagination();
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updatePagination();
+    });
+
+    if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
+    if (monthFilter) monthFilter.addEventListener('change', applyFilters);
+
+    if (resetFilters) {
+        resetFilters.addEventListener('click', () => {
+            if (categoryFilter) categoryFilter.value = '';
+            if (monthFilter) monthFilter.value = '';
+            applyFilters();
+        });
+    }
+</script>
+
+</body>
+</html>

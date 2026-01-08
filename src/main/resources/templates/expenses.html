@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Dépenses</title>
+
+    <style>
+
+                input:focus, textarea:focus, select:focus,
+                input.edit-input:focus, select.edit-input:focus, textarea.edit-input:focus {
+                    outline: none !important;
+                    box-shadow: none !important;
+                    border-color: #ccc !important;
+                    background-clip: padding-box !important;
+                    border-width: 1px !important;
+                }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(135deg, #f8fafc, #eff6ff, #dbeafe);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover { color: var(--blue-dark); }
+
+        .profile-menu { position: relative; display: flex; align-items: center; }
+
+        .profile-button {
+            background: none;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+                
+
+        .profile-button:hover, .profile-button:active, .profile-button:focus {
+            background: var(--blue-dark);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .profile-icon { width: 20px; height: 20px; margin-right: 5px; }
+
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: -5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0;
+            backdrop-filter: blur(16px);
+            z-index: 20;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-menu.active { display: block; animation: slideDown 0.2s ease; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logout-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+
+        .logout-link.logout-link-danger {
+            color: #e11d48;
+        }
+
+        .logout-link:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+        main { max-width: 1100px; margin: 40px auto 60px; padding: 0 24px; }
+
+        h2 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h4 {
+            color: var(--blue-dark);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        p.lead {
+            color: #475569;
+            margin: 0 auto 40px auto;
+            line-height: 1.5;
+            max-width: 760px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        section {
+            background: transparent;
+            padding: 0;
+            margin-top: 0;
+        }
+
+        .filter-box {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .filter-box form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: end;
+        }
+
+        .filter-box label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .filter-box input,
+        .filter-box select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 13px;
+            background: #fff;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+
+        .filter-box input:focus,
+        .filter-box select:focus {
+            outline: none;
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+
+        button {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 400;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+            margin-top: 20px;
+        }
+
+        th, td { padding: 12px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.3); }
+        thead { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tbody tr { background: #ffffff; }
+        
+        th:nth-child(1) { width: 15%; }
+        th:nth-child(2) { width: 20%; }
+        th:nth-child(3) { width: 20%; }
+        th:nth-child(4) { width: 35%; }
+        th:nth-child(5) { width: 10%; }
+
+        .highlight { background: rgba(255, 100, 100, 0.5); }
+
+        .action-column { display: none; }
+
+        .edit-column { 
+            display: none;
+            text-align: center;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--blue-main);
+            border-radius: 4px;
+            font-size: 14px;
+            background: #fff;
+            color: #1e293b;
+        }
+
+
+        .save-btn {
+            background: transparent;
+            color: #10b981;
+            padding: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+        }
+
+        .save-btn:hover {
+            color: #059669;
+            transform: scale(1.2);
+            box-shadow: none;
+        }
+
+        .save-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: #ffffff;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            color: #1e293b;
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .modal-content h3 {
+            color: var(--blue-dark);
+            margin-bottom: 15px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 14px;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+
+        .close {
+            color: #9ca3af;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close:hover { color: var(--blue-dark); }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 16px;
+            font-size: 13px;
+        }
+
+        a {
+            color: #2563eb;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover { color: var(--blue-dark); }
+
+        .items-per-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .items-per-page label { font-size: 13px; font-weight: 500; color: #475569; }
+
+        .items-per-page select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 13px;
+            background: #fff;
+            color: #1e293b;
+        }
+
+        footer {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 20px 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 60px;
+        }
+
+        .action-buttons {
+            margin-top: 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none !important;
+            box-shadow: none !important;
+            border-color: #ccc !important;
+        }
+    
+
+        .filter-note {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #475569;
+            padding: 12px;
+            background: rgba(37, 99, 235, 0.05);
+            border-left: 3px solid var(--blue-main);
+            border-radius: 6px;
+        }
+
+        .legend {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 12px;
+        }
+
+        .legend-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: rgba(255, 100, 100, 0.5);
+        }
+    </style>
+
+    <script>
+        let deleteMode = false;
+        let editMode = false;
+
+        function toggleNewCategory(selectElement) {
+            const newCatForm = document.getElementById('newCategoryForm');
+            const newCatName = document.getElementById('newCategoryName');
+            const newCatDesc = document.getElementById('newCategoryDescription');
+
+            if (selectElement.value === 'NEW_CATEGORY') {
+                newCatForm.style.display = 'block';
+                newCatName.required = true;
+            } else {
+                newCatForm.style.display = 'none';
+                newCatName.required = false;
+                newCatName.value = '';
+                newCatDesc.value = '';
+            }
+        }
+
+        function toggleEditMode(button) {
+            const rows = document.querySelectorAll('#expensesTable tbody tr');
+            const editCols = document.querySelectorAll('.edit-column');
+
+            if (!editMode) {
+                editCols.forEach(col => col.style.display = 'table-cell');
+                rows.forEach(row => {
+                    const amountCell = row.cells[0];
+                    const dateCell = row.cells[1];
+                    const categoryCell = row.cells[2];
+                    const descCell = row.cells[3];
+
+                    const amountValue = amountCell.textContent;
+                    const dateValue = dateCell.textContent;
+                    const categoryValue = categoryCell.textContent;
+                    const descValue = descCell.textContent;
+
+                    amountCell.innerHTML = `<input type="number" step="0.01" class="edit-input" value="${amountValue}" data-original="${amountValue}">`;
+                    dateCell.innerHTML = `<input type="date" class="edit-input" value="${dateValue}" data-original="${dateValue}">`;
+
+                    categoryCell.innerHTML = `<span class="category-edit-span" style="cursor:pointer;">${categoryValue}</span>`;
+                    const span = categoryCell.querySelector('.category-edit-span');
+                    span.addEventListener('click', function handler() {
+                        span.removeEventListener('click', handler);
+                        const categories = [];
+                        const categorySelect = document.querySelector('#modalCategoryId');
+                        if (categorySelect) {
+                            Array.from(categorySelect.options).forEach(opt => {
+                                if (opt.value && opt.value !== 'NEW_CATEGORY') {
+                                    categories.push({id: opt.value, name: opt.text});
+                                }
+                            });
+                        }
+                        let categoryOptions = '';
+                        categories.forEach(cat => {
+                            const selected = cat.name === categoryValue ? 'selected' : '';
+                            categoryOptions += `<option value="${cat.id}" ${selected}>${cat.name}</option>`;
+                        });
+                        categoryCell.innerHTML = `<select class="edit-input" data-original="${categoryValue}">${categoryOptions}</select>`;
+                    });
+
+                    descCell.innerHTML = `<input type="text" class="edit-input" value="${descValue}" data-original="${descValue}">`;
+                });
+                button.textContent = 'Valider';
+                editMode = true;
+            } else {
+                editCols.forEach(col => col.style.display = 'none');
+                rows.forEach(row => {
+                    const amountInput = row.cells[0].querySelector('input');
+                    const dateInput = row.cells[1].querySelector('input');
+                    const categorySelect = row.cells[2].querySelector('select');
+                    const descInput = row.cells[3].querySelector('input');
+                    const categorySpan = row.cells[2].querySelector('span');
+                    if (amountInput && dateInput && descInput) {
+                        row.cells[0].textContent = amountInput.value;
+                        row.cells[1].textContent = dateInput.value;
+                        row.cells[3].textContent = descInput.value;
+                    }
+                    if (categorySelect) {
+                        row.cells[2].textContent = categorySelect.options[categorySelect.selectedIndex].text;
+                    } else if (categorySpan) {
+                        row.cells[2].textContent = categorySpan.textContent;
+                    }
+                });
+                button.textContent = 'Modifier';
+                editMode = false;
+            }
+        }
+
+        function saveExpense(expenseId, button) {
+            const row = button.closest('tr');
+            const amountInput = row.cells[0].querySelector('input');
+            const dateInput = row.cells[1].querySelector('input');
+            const categorySelect = row.cells[2].querySelector('select');
+            const descInput = row.cells[3].querySelector('input');
+
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = `/expenses/update/${expenseId}`;
+            
+            const amountField = document.createElement('input');
+            amountField.type = 'hidden';
+            amountField.name = 'amount';
+            amountField.value = amountInput.value;
+            
+            const dateField = document.createElement('input');
+            dateField.type = 'hidden';
+            dateField.name = 'date';
+            dateField.value = dateInput.value;
+            
+            const categoryField = document.createElement('input');
+            categoryField.type = 'hidden';
+            categoryField.name = 'categoryId';
+            categoryField.value = categorySelect.value;
+            
+            const descField = document.createElement('input');
+            descField.type = 'hidden';
+            descField.name = 'description';
+            descField.value = descInput.value;
+            
+            form.appendChild(amountField);
+            form.appendChild(dateField);
+            form.appendChild(categoryField);
+            form.appendChild(descField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function toggleDeleteMode(button) {
+            const actionCols = document.querySelectorAll('.action-column');
+            const rows = document.querySelectorAll('#expensesTable tbody tr');
+
+            if (!deleteMode) {
+                actionCols.forEach(col => col.style.display = 'table-cell');
+                button.innerHTML = '<svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>Valider';
+
+                deleteMode = true;
+            } else {
+                actionCols.forEach(col => col.style.display = 'none');
+                button.innerHTML = '<svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>Supprimer';
+
+                deleteMode = false;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('addExpenseModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('addExpenseModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('addExpenseModal');
+            if (event.target === modal) { modal.style.display = 'none'; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutMenu = document.getElementById('logoutMenu');
+            profileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                logoutMenu.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+                    logoutMenu.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    
+
+<header>
+    <div class="logo"><span></span> FINEO</div>
+    <nav>
+        <a href="/budgets">Budgets</a>
+        <a href="/expenses">Dépenses</a>
+        <a href="/categories">Catégories</a>
+        <a href="/reports">Rapports</a>
+        <a href="/statistics">Statistiques</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a href="/users/profile" class="logout-link">Mon profil</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+
+<main>
+    <h2>Mes Dépenses</h2>
+    <p class="lead">Consultez l'historique de vos dépenses et suivez leur évolution pour mieux comprendre où va votre argent.</p>
+
+
+    <div class="filter-box">
+        <h4>Recherche et Filtres</h4>
+        <form th:action="@{/expenses}" method="get">
+            <div>
+                <label for="filterCategoryId">Catégorie:</label>
+                <select id="filterCategoryId" name="categoryId">
+                    <option value="">Toutes les catégories</option>
+                    <option th:each="cat : ${categories}" th:value="${cat.id}"
+                            th:text="${cat.name}" th:selected="${cat.id == selectedCategoryId}"></option>
+                </select>
+            </div>
+
+            <div>
+                <label for="filterStartDate">Du:</label>
+                <input type="date" id="filterStartDate" name="startDate" th:value="${startDate}">
+            </div>
+
+            <div>
+                <label for="filterEndDate">Au:</label>
+                <input type="date" id="filterEndDate" name="endDate" th:value="${endDate}">
+            </div>
+
+            <button type="submit">Rechercher</button>
+        </form>
+    </div>
+
+    <script>
+        const startInput = document.getElementById("startDate");
+        const endInput = document.getElementById("endDate");
+
+
+        if (startInput.value) {
+            endInput.min = startInput.value;
+        }
+        if (endInput.value) {
+            startInput.max = endInput.value;
+        }
+
+        startInput.addEventListener("change", () => {
+            endInput.min = startInput.value;
+
+
+            if (endInput.value < startInput.value) {
+                endInput.value = "";
+            }
+        });
+
+
+        endInput.addEventListener("change", () => {
+            startInput.max = endInput.value;
+
+
+            if (startInput.value > endInput.value) {
+                startInput.value = "";
+            }
+        });
+
+
+        const form = startInput.closest("form");
+        form.addEventListener("submit", (e) => {
+            if (startInput.value && endInput.value && startInput.value > endInput.value) {
+                e.preventDefault();
+                alert("La date de début doit être inférieure à la date de fin.");
+            }
+        });
+    </script>
+
+
+
+    <div class="action-buttons">
+        <button type="button" onclick="openModal()">
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Ajouter
+        </button>
+        <button type="button" onclick="toggleEditMode(this)">Modifier</button>
+        <button type="button" onclick="toggleDeleteMode(this)">
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Supprimer
+        </button>
+    </div>
+
+  
+    <div id="addExpenseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Ajouter une dépense</h3>
+
+            <form id="addExpenseForm" th:action="@{/expenses/add}" method="post" th:object="${expense}">
+                <div class="form-group">
+                    <label for="modalAmount">Montant :</label>
+                    <input id="modalAmount" th:field="*{amount}" type="number" step="0.01"
+                           placeholder="Entrez le montant" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalDate">Date :</label>
+                    <input id="modalDate" th:field="*{date}" type="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalCategoryId">Catégorie :</label>
+                    <select id="modalCategoryId" name="categoryId" required onchange="toggleNewCategory(this)">
+                        <option value="" disabled selected>Sélectionner une catégorie</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                        <option value="NEW_CATEGORY">✚ Ajouter une nouvelle catégorie</option>
+                    </select>
+                </div>
+
+                <div id="newCategoryForm" style="display:none; margin-top:10px;">
+                    <div class="form-group">
+                        <label for="newCategoryName">Nom de la nouvelle catégorie :</label>
+                        <input type="text" id="newCategoryName" name="newCategoryName" placeholder="Nom de la catégorie">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newCategoryDescription">Description :</label>
+                        <input type="text" id="newCategoryDescription" name="newCategoryDescription"
+                               placeholder="Description (optionnelle)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalDescription">Commentaire :</label>
+                    <input id="modalDescription" th:field="*{description}" placeholder="Ajouter un commentaire">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal()">Annuler</button>
+                    <button type="submit">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="overBudgetModal" class="modal"
+         th:if="${showOverBudgetModal}" style="display:block;">
+        <div class="modal-content" style="position:relative;">
+            <span class="close" onclick="closeOverBudgetModal()">&times;</span>
+            <h3 style="color:#f87171;">⚠️ Avertissement de dépassement de budget</h3>
+            <p>
+                Cette dépense dépasse le budget défini pour sa catégorie.<br><br>
+                <strong>Budget autorisé :</strong> <span th:text="${budgetAmount}"></span><br>
+                <strong>Déjà dépensé :</strong> <span th:text="${totalSpent}"></span><br>
+                <strong>Dépense actuelle :</strong> <span th:text="${proposedExpense.amount}"></span>
+            </p>
+
+            <p style="color:#f87171; font-weight:600;">Souhaitez-vous l’ajouter quand même ?</p>
+
+            <div class="modal-buttons">
+                <button type="button" onclick="closeOverBudgetModal()">Annuler</button>
+
+                <form th:action="@{/expenses/add}" method="post">
+                    
+                    <input type="hidden" name="confirmOverBudget" value="true"/>
+                    <input type="hidden" th:name="amount" th:value="${proposedExpense.amount}"/>
+                    <input type="hidden" th:name="date" th:value="${proposedExpense.date}"/>
+                    <input type="hidden" th:name="categoryId" th:value="${proposedExpense.category.id}"/>
+                    <input type="hidden" th:name="description" th:value="${proposedExpense.description}"/>
+
+                    <button type="submit" style="background-color:#dc2626;">Confirmer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeOverBudgetModal() {
+            document.getElementById('overBudgetModal').style.display = 'none';
+        }
+    </script>
+
+
+    <table id="expensesTable">
+        <thead>
+        <tr>
+            <th>Montant</th>
+            <th>Date</th>
+            <th>Catégorie</th>
+            <th>Commentaire</th>
+               
+            <th class="action-column">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="e : ${expenses}" th:classappend="${e.overBudget} ? 'highlight' : ''">
+            <td th:text="${e.amount}"></td>
+            <td th:text="${e.date}"></td>
+            <td th:text="${e.category != null ? e.category.name : 'Sans catégorie'}"></td>
+            <td th:text="${e.description}"></td>
+             
+            <td class="action-column">
+                <form th:action="@{'/expenses/delete/' + ${e.id}}" method="post">
+                    <button type="submit" class="delete-btn">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <div th:if="${expenses != null and #lists.size(expenses) > 0 and totalElements > 0}" style="margin-top: 30px;">
+        <p th:if="${totalElements > 0}" style="margin-top: 0; text-align: right; font-size: 13px; color: #475569;">
+            <span th:text="${(currentPage * size) + 1}"></span>-<span th:text="${(currentPage + 1) * size > totalElements ? totalElements : (currentPage + 1) * size}"></span>/<span th:text="${totalElements}"></span>
+        </p>
+
+        <div style="text-align: center;">
+            <div th:if="${totalPages > 1}" style="margin-top: 40px;">
+                <a th:if="${totalPages > 2 and currentPage > 0}"
+                   th:href="@{/expenses(page=0, size=${size}, sortBy=${sortBy}, sortDirection=${sortDirection},
+                                categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}">
+                    ⏮ Première
+                </a>
+
+                <a th:if="${currentPage > 0}"
+                   th:href="@{/expenses(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDirection=${sortDirection},
+                                categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}">
+                    ◀ Précédent
+                </a>
+
+                <span th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}">
+                    <a th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}"
+                       th:href="@{/expenses(page=${pageNum}, size=${size}, sortBy=${sortBy}, sortDirection=${sortDirection},
+                                            categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}"
+                       th:text="${pageNum + 1}"
+                       th:style="${pageNum == currentPage} ?
+                           'padding: 5px 10px; margin: 2px; background-color: #1e40af; color: white; text-decoration: none; border-radius: 4px;' :
+                           'padding: 5px 10px; margin: 2px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px;'">
+                    </a>
+                </span>
+
+                <a th:if="${currentPage < totalPages - 1}"
+                   th:href="@{/expenses(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDirection=${sortDirection},
+                                categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}">
+                    Suivant ▶
+                </a>
+
+                <a th:if="${totalPages > 2 and currentPage < totalPages - 1}"
+                   th:href="@{/expenses(page=${totalPages - 1}, size=${size}, sortBy=${sortBy}, sortDirection=${sortDirection},
+                                categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}">
+                    Dernière ⏭
+                </a>
+            </div>
+        </div>
+
+
+        <div class="items-per-page">
+            <label for="itemsPerPage">Éléments par page:</label>
+            <select id="itemsPerPage" onchange="location = this.value;">
+                <option th:value="@{/expenses(page=0, size=5, sortBy=${sortBy}, sortDirection=${sortDirection},
+                             categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}"
+                        th:selected="${size == 5}">5</option>
+                <option th:value="@{/expenses(page=0, size=10, sortBy=${sortBy}, sortDirection=${sortDirection},
+                             categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}"
+                        th:selected="${size == 10}">10</option>
+                <option th:value="@{/expenses(page=0, size=20, sortBy=${sortBy}, sortDirection=${sortDirection},
+                             categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}"
+                        th:selected="${size == 20}">20</option>
+                <option th:value="@{/expenses(page=0, size=50, sortBy=${sortBy}, sortDirection=${sortDirection},
+                             categoryId=${selectedCategoryId}, startDate=${startDate}, endDate=${endDate})}"
+                        th:selected="${size == 50}">50</option>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="legend">
+        <span>
+            <span class="legend-indicator"></span>
+            indique une dépense ajoutée au-delà du budget
+        </span>
+    </div>
+</main>
+
+
+<footer>
+    <p>&copy; 2025 FINEO . Tous droits réservés.</p>
+</footer>
+
+</body>
+</html>

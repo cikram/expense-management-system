@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des administrateurs - FINEO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --color-danger: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(180deg, 
+                    #f8fafc 0%,
+                    #eff6ff 25%,
+                    #dbeafe 45%,
+                    #ffffff 65%,
+                    #ffffff 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+        nav a:hover {
+            color: var(--blue-dark);
+        }
+        .profile-menu {
+            position: relative;
+            display: flex;
+            align-items: center;
+            overflow: visible;
+            z-index: 20;
+        }
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .profile-button:hover {
+            background: var(--blue-dark);
+            color: #fff;
+        }
+        .profile-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 0;
+            backdrop-filter: blur(16px);
+            z-index: 1000;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+        .logout-menu.active {
+            display: block;
+        }
+        .logout-menu button,
+        .logout-menu a {
+            width: 100%;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+            display: block;
+            box-sizing: border-box;
+        }
+        .logout-link-danger {
+            color: #dc2626 !important;
+        }
+        .logout-link,
+        .logout-link-danger {
+            background: transparent;
+        }
+        .logout-link:hover,
+        .logout-link-danger:hover {
+            background: var(--blue-dark);
+            color: #ffffff !important;
+        }
+        .content {
+            flex: 1;
+            padding: 0 20px;
+        }
+        .content h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--blue-dark);
+            margin-bottom: 24px;
+        }
+        table {
+            width: 67%;
+            margin: 24px auto 0 auto;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+            table-layout: auto;
+        }
+        th, td { padding: 12px 14px; text-align: left; font-size: 14px; }
+        thead { background: #f8fafc; color: #0f172a; font-weight: 600; }
+        tbody tr { background: #ffffff; }
+        a.btn {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-right: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+        a.btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.25); }
+        a.btn-danger { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        a.btn-danger:hover { box-shadow: 0 5px 15px rgba(220, 38, 38, 0.25); }
+        .pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+        .pagination-info { color: #475569; font-size: 13px; }
+        .pagination-actions { display: inline-flex; gap: 8px; }
+        .pagination a {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: #ffffff;
+            color: #1e293b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;;
+            transition: all 0.2s ease;
+            
+        }
+        .pagination a:hover { border-color: var(--blue-dark); color: var(--blue-dark); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+        .hero { display: flex; justify-content: space-between; align-items: center; gap: 40px; padding: 40px 50px; max-width: 1400px; margin: 0 auto; margin-top: 24px; }
+        .hero-content { flex: 1; }
+        .hero h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p { color: #475569; margin: 0 auto 24px auto; line-height: 1.5; max-width: 760px; text-align: center; }
+        footer {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 14px 0;
+            text-align: center;
+        }
+        .footer-bottom {
+            color: #64748b;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 10px; }
+            nav { flex-direction: column; gap: 10px; width: 100%; }
+            table { font-size: 12px; }
+            th, td { padding: 10px; }
+            a.btn { padding: 6px 10px; font-size: 12px; margin-right: 4px; }
+            .hero { padding: 40px 20px; flex-direction: column; }
+            .hero h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/admin/home">Dashboard</a>
+        <a href="/admin/users">Utilisateurs</a>
+        <a href="/admin/admins">Administrateurs</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a href="/admin/profile" class="logout-link">Mon profil</a>
+            <form action="/logout" method="post" style="margin: 0;">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+        
+
+    </div>
+</header>
+<div class="content">
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Administrateurs</h1>
+            <p>Centralisez la gestion des comptes administrateurs et maîtrisez les accès privilégiés pour une administration fiable et sécurisée.</p>
+        </div>
+    </section>
+    <div style="width:67%; margin:0 auto 18px auto; display:flex; justify-content:flex-start; gap:16px; align-items:center;">
+        
+        <button id="edit-all-btn" class="btn btn-primary" style="padding:10px 14px; border-radius:6px; font-size:14px; font-weight:500; background: linear-gradient(135deg, #1e40af, #2563eb); color:white; border:none; transition:all 0.2s;" onclick="enableEditAll()">Modifier</button>
+        <button id="save-all-btn" class="btn btn-success" style="display:none; padding:10px 14px; border-radius:6px; font-size:14px; font-weight:500; background: linear-gradient(135deg, #16a34a, #22c55e); color:white; border:none; transition:all 0.2s;" onclick="saveEditAll()">Enregistrer</button>
+        <button id="cancel-all-btn" class="btn btn-secondary" style="display:none; padding:10px 14px; border-radius:6px; font-size:14px; font-weight:500; background: linear-gradient(135deg, #64748b, #94a3b8); color:white; border:none; transition:all 0.2s;" onclick="cancelEditAll()">Annuler</button>
+        <button id="show-actions-btn" class="btn btn-danger" style="padding:10px 14px; border-radius:6px; font-size:14px; font-weight:500; background: linear-gradient(135deg, #dc2626, #991b1b); color:white; border:none; transition:all 0.2s;" onclick="toggleActionsCol()">Supprimer</button>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th style="min-width: 150px;">ID</th>
+            <th style="min-width: 240px;">Nom d'utilisateur</th>
+            <th style="min-width: 250px;">Email</th>
+            <th class="actions-header" style="display:none;width:1px;padding:0 18px 0 12px; text-align:left;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${adminsPage.content}"
+            th:attr="data-admin-id=${a.id}"
+            style="cursor:pointer;">
+            <td th:text="${a.id}"></td>
+            <td>
+                <span th:text="${a.username}" th:attr="id='username-span-' + ${a.id}"></span>
+                <input type="text" th:value="${a.username}" th:attr="id='username-input-' + ${a.id}" style="display:none;width:90%;border:none;background:transparent;outline:none;" />
+            </td>
+            <td>
+                <span th:text="${a.email}" th:attr="id='email-span-' + ${a.id}"></span>
+                <input type="email" th:value="${a.email}" th:attr="id='email-input-' + ${a.id}" style="display:none;width:90%;border:none;background:transparent;outline:none;" />
+            </td>
+            <td class="actions-col" style="text-align:left; display:none; width:1px; padding:0 18px 0 12px;">
+                <a th:href="@{'/admin/admins/delete/' + ${a.id}}" title="Supprimer"
+                   onclick="event.stopPropagation(); return confirm('Supprimer cet administrateur ?')"
+                   style="display:inline-block; vertical-align:middle; margin:0 4px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:#dc2626;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <script>
+    let editAllMode = false;
+    function enableEditAll() {
+        editAllMode = true;
+        document.querySelectorAll('tr[data-admin-id]').forEach(function(row) {
+            const id = row.getAttribute('data-admin-id');
+            document.getElementById('username-span-' + id).style.display = 'none';
+            document.getElementById('email-span-' + id).style.display = 'none';
+            document.getElementById('username-input-' + id).style.display = 'inline-block';
+            document.getElementById('email-input-' + id).style.display = 'inline-block';
+        });
+        document.getElementById('edit-all-btn').style.display = 'none';
+        document.getElementById('save-all-btn').style.display = 'inline-block';
+        document.getElementById('cancel-all-btn').style.display = 'inline-block';
+    }
+    function cancelEditAll() {
+        editAllMode = false;
+        document.querySelectorAll('tr[data-admin-id]').forEach(function(row) {
+            const id = row.getAttribute('data-admin-id');
+            document.getElementById('username-span-' + id).style.display = 'inline';
+            document.getElementById('email-span-' + id).style.display = 'inline';
+            document.getElementById('username-input-' + id).style.display = 'none';
+            document.getElementById('email-input-' + id).style.display = 'none';
+        });
+        document.getElementById('edit-all-btn').style.display = 'inline-block';
+        document.getElementById('save-all-btn').style.display = 'none';
+        document.getElementById('cancel-all-btn').style.display = 'none';
+    }
+    function saveEditAll() {
+        const rows = document.querySelectorAll('tr[data-admin-id]');
+        let promises = [];
+        rows.forEach(function(row) {
+            const id = row.getAttribute('data-admin-id');
+            const username = document.getElementById('username-input-' + id).value;
+            const email = document.getElementById('email-input-' + id).value;
+            promises.push(
+                fetch('/admin/admins/edit/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'username=' + encodeURIComponent(username) + '&email=' + encodeURIComponent(email)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('username-span-' + id).textContent = username;
+                        document.getElementById('email-span-' + id).textContent = email;
+                    }
+                })
+            );
+        });
+        Promise.all(promises).then(() => {
+            editAllMode = false;
+            document.querySelectorAll('tr[data-admin-id]').forEach(function(row) {
+                const id = row.getAttribute('data-admin-id');
+                document.getElementById('username-span-' + id).style.display = 'inline';
+                document.getElementById('email-span-' + id).style.display = 'inline';
+                document.getElementById('username-input-' + id).style.display = 'none';
+                document.getElementById('email-input-' + id).style.display = 'none';
+            });
+            document.getElementById('edit-all-btn').style.display = 'inline-block';
+            document.getElementById('save-all-btn').style.display = 'none';
+            document.getElementById('cancel-all-btn').style.display = 'none';
+        });
+    }
+    </script>
+
+    <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; width:67%; margin: 20px auto 8px auto;">
+            <div class="pagination-info" style="text-align:left;">
+                Page [[${currentPage + 1}]] / [[${totalPages}]]
+            </div>
+            <div class="pagination-info" style="text-align:right;">
+                <span th:with="start=${currentPage * adminsPage.size}, end=${currentPage * adminsPage.size + adminsPage.numberOfElements}, total=${adminsPage.totalElements}">
+                    [[${start + 1}]]-[[${end}]] / [[${total}]]
+                </span>
+            </div>
+        </div>
+        
+        <div class="pagination" style="justify-content:center; text-align:center; margin-bottom:40px;">
+           
+            <a th:if="${currentPage > 0}"
+               th:href="@{/admin/admins(page=${currentPage - 1})}">
+                &lt; Précédent
+            </a>
+
+            <span class="pagination-actions">
+                <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                          <a th:href="@{/admin/admins(page=${i})}"
+                              th:text="${i + 1}"
+                              th:classappend="i == currentPage ? 'active' : ''"
+                              style="margin:0 2px; min-width:32px; text-align:center;"
+                          ></a>
+                </span>
+            </span>
+
+            <a th:if="${currentPage + 1 < totalPages}"
+               th:href="@{/admin/admins(page=${currentPage + 1})}">
+                Suivant &gt;
+            </a>
+        </div>
+
+        
+    </div>
+</div>
+
+<footer>
+    <div class="footer-bottom">
+        <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+    </div>
+</footer>
+
+<script>
+    const profileBtn = document.getElementById('profileBtn');
+    const logoutMenu = document.getElementById('logoutMenu');
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        logoutMenu.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+            logoutMenu.classList.remove('active');
+        }
+    });
+</script>
+    <script>
+    function toggleActionsCol() {
+        const actionsVisible = document.querySelector('.actions-col') && document.querySelector('.actions-col').style.display !== 'none';
+        document.querySelectorAll('.actions-col').forEach(td => td.style.display = actionsVisible ? 'none' : 'table-cell');
+        document.querySelectorAll('.actions-header').forEach(th => th.style.display = actionsVisible ? 'none' : 'table-cell');
+    }
+    </script>
+</div>
+
+</body>
+</html>

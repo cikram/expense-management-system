@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapports - FINEO</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --blue-main: #2563eb;
+            --blue-dark: #1e40af;
+            --blue-deep: #111827;
+            --glass-border: rgba(37, 99, 235, 0.18);
+            --glass-bg: rgba(37, 99, 235, 0.045);
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(37,99,235,0.06), transparent 50%),
+                radial-gradient(circle at 85% 80%, rgba(59,130,246,0.05), transparent 50%),
+                linear-gradient(135deg, #f8fafc, #eff6ff, #dbeafe);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(239, 246, 255, 0.95));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--blue-deep) 0%, var(--blue-dark) 50%, var(--blue-main) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover { color: var(--blue-dark); }
+
+        .profile-menu { position: relative; display: flex; align-items: center; }
+
+        .profile-button {
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .profile-button:hover { background: var(--blue-dark); color: #fff; }
+
+        .profile-icon { width: 20px; height: 20px; margin-right: 5px; }
+
+        .logout-menu {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: -5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.9));
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 0;
+            backdrop-filter: blur(16px);
+            z-index: 30;
+            min-width: 180px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-menu.active { display: block; }
+
+
+        .logout-link {
+            width: 100%;
+            display: block;
+            background: transparent;
+            color: #475569;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            text-decoration: none;
+        }
+        .logout-link.logout-link-danger {
+            color: #e11d48;
+        }
+        .logout-link:hover {
+            background: var(--blue-dark);
+            color: #ffffff;
+        }
+
+        main { max-width: 1200px; margin: 40px auto 60px; padding: 0 24px; }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #0f172a 0%, var(--blue-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        p.lead {
+            color: #475569;
+            margin: 0 auto 30px auto;
+            line-height: 1.6;
+            max-width: 820px;
+            text-align: center;
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .alert-success { border-color: rgba(34,197,94,0.25); color: #15803d; }
+        .alert-danger { border-color: rgba(239,68,68,0.25); color: #b91c1c; }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.10);
+            padding: 20px;
+            margin-bottom: 24px;
+            max-width: 92vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--blue-dark);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .radio-tile {
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+        }
+
+        .radio-tile input { display: none; }
+
+        .radio-tile.active,
+        .radio-tile:hover {
+            border-color: var(--blue-dark);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        label { font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; display: block; }
+
+        input, select, button {
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #fff;
+            color: #1e293b;
+            transition: all 0.2s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--blue-main);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+        }
+
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue-dark), var(--blue-main));
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 26px rgba(37, 99, 235, 0.22); }
+
+        .reports-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr)); 
+            gap: 14px;
+        }
+
+        .report-card {
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            background: #ffffff; 
+            box-shadow: 0 10px 26px rgba(37, 99, 235, 0.08);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: visible; 
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .report-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(37, 99, 235, 0.12); }
+
+        .report-top {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #0f172a; 
+            border-bottom: 1px solid rgba(148, 163, 184, 0.30);
+        }
+
+
+        .report-top i { font-size: 13px; }
+
+
+        .badge-monthly { background: #f1f5f9; }
+        .badge-annual { background: #f1f5f9; }
+        .badge-custom { background: #f1f5f9; }
+
+        .report-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; color: #0f172a; }
+
+        .report-footer {
+            padding: 12px 16px;
+            background: rgba(248, 250, 252, 0.9);
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .meta { color: #64748b; font-size: 13px; }
+
+        .actions { display: inline-flex; gap: 6px; }
+
+        .icon-btn {
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #fff;
+            color: #1e293b;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover { border-color: var(--blue-dark); color: var(--blue-dark); box-shadow: 0 6px 14px rgba(37, 99, 235, 0.12); }
+
+        .icon-btn.delete { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+        .icon-btn.delete:hover { background: var(--danger); color: #fff; }
+
+
+        .icon-btn[data-tooltip] { position: relative; }
+
+        .icon-btn[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 108%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f1f5f9;
+            color: var(--blue-dark);
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform-origin: center bottom;
+            font-size: 12px;
+            line-height: 1.2;
+            z-index: 1000;
+        }
+
+        .icon-btn[data-tooltip]::before {
+            content: '';
+            position: absolute;
+            bottom: 102%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #f1f5f9;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 1000;
+        }
+
+        .icon-btn[data-tooltip]:hover::after,
+        .icon-btn[data-tooltip]:hover::before,
+        .icon-btn[data-tooltip]:focus::after,
+        .icon-btn[data-tooltip]:focus::before {
+            opacity: 1;
+            transform: translate(-50%, -2px);
+        }
+
+        .stat-line { display: flex; justify-content: space-between; font-size: 13px; color: #334155; }
+
+        .progress {
+            width: 100%;
+            height: 10px;
+            background: rgba(226, 232, 240, 0.7);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        .bar-safe { background: linear-gradient(135deg, #16a34a, #22c55e); }
+        .bar-watch { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .bar-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .empty-state {
+            text-align: center;
+            padding: 36px 20px;
+            color: #475569;
+        }
+
+        footer {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.85) 30%, rgba(249, 250, 251, 1) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 20px 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 10px; }
+            nav { flex-wrap: wrap; justify-content: center; }
+        }
+
+
+        .pagination-container { margin-top: 20px; }
+        .pagination-info {
+            text-align: right;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 10px;
+        }
+        .pagination-controls {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pagination-controls a,
+        .pagination-controls span {
+            padding: 8px 12px;
+            margin: 2px;
+            text-decoration: none;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #475569;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: #fff;
+        }
+        .pagination-controls a:hover { background-color: var(--blue-main); color: #fff; border-color: var(--blue-main); }
+        .pagination-controls .active { background-color: var(--blue-dark); color: #fff; border-color: var(--blue-dark); }
+        .pagination-controls .disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo"><span>FINEO</span></div>
+    <nav>
+        <a href="/budgets">Budgets</a>
+        <a href="/expenses">Dépenses</a>
+        <a href="/categories">Catégories</a>
+        <a href="/reports" style="color: var(--blue-dark); font-weight: 700;">Rapports</a>
+        <a href="/statistics">Statistiques</a>
+    </nav>
+    <div class="profile-menu">
+        <button class="profile-button" id="profileBtn">
+            <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="currentColor"/>
+            </svg>
+        </button>
+        <div class="logout-menu" id="logoutMenu">
+            <a th:href="@{/users/profile}" class="logout-link">Mon profil</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-link logout-link-danger">Se déconnecter</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main>
+    <h1>Mes Rapports de dépenses</h1>
+    <p class="lead">Analysez vos dépenses par catégorie et par période. Visualisez où va votre argent, identifiez les excès et ajustez vos budgets pour mieux maîtriser vos finances.</p>
+
+    <div th:if="${success}" class="alert alert-success" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="close-btn" onclick="this.parentElement.remove();">×</button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="close-btn" onclick="this.parentElement.remove();">×</button>
+    </div>
+
+    <div class="glass-card">
+        <div class="card-title"><i class="fas fa-plus-circle"></i> Générer un nouveau rapport</div>
+        <form th:action="@{/reports/generate}" method="post">
+            <label>Type de rapport</label>
+            <div class="radio-group">
+                <label class="radio-tile active" id="tile-monthly">
+                    <input type="radio" name="reportType" id="monthlyRadio" value="MONTHLY" checked onclick="showReportForm('monthly')">
+                    <i class="fas fa-calendar-day"></i> Mensuel
+                </label>
+                <label class="radio-tile" id="tile-annual">
+                    <input type="radio" name="reportType" id="annualRadio" value="ANNUAL" onclick="showReportForm('annual')">
+                    <i class="fas fa-calendar"></i> Annuel
+                </label>
+                <label class="radio-tile" id="tile-custom">
+                    <input type="radio" name="reportType" id="customRadio" value="CUSTOM" onclick="showReportForm('custom')">
+                    <i class="fas fa-calendar-alt"></i> Personnalisé
+                </label>
+            </div>
+
+            <div id="monthlyForm" class="form-section active">
+                <div class="form-grid">
+                    <div>
+                        <label for="monthlyYear">Année</label>
+                        <select name="year" id="monthlyYear">
+                            <option th:each="year : ${availableYears}"
+                                    th:value="${year}"
+                                    th:text="${year}"
+                                    th:selected="${year == currentYear}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="month">Mois</label>
+                        <select name="month" id="month">
+                            <option value="1" th:selected="${currentMonth == 1}">Janvier</option>
+                            <option value="2" th:selected="${currentMonth == 2}">Février</option>
+                            <option value="3" th:selected="${currentMonth == 3}">Mars</option>
+                            <option value="4" th:selected="${currentMonth == 4}">Avril</option>
+                            <option value="5" th:selected="${currentMonth == 5}">Mai</option>
+                            <option value="6" th:selected="${currentMonth == 6}">Juin</option>
+                            <option value="7" th:selected="${currentMonth == 7}">Juillet</option>
+                            <option value="8" th:selected="${currentMonth == 8}">Août</option>
+                            <option value="9" th:selected="${currentMonth == 9}">Septembre</option>
+                            <option value="10" th:selected="${currentMonth == 10}">Octobre</option>
+                            <option value="11" th:selected="${currentMonth == 11}">Novembre</option>
+                            <option value="12" th:selected="${currentMonth == 12}">Décembre</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="annualForm" class="form-section">
+                <div class="form-grid">
+                    <div>
+                        <label for="annualYear">Année</label>
+                        <select name="year" id="annualYear" disabled>
+                            <option th:each="year : ${availableYears}"
+                                    th:value="${year}"
+                                    th:text="${year}"
+                                    th:selected="${year == currentYear}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="customForm" class="form-section">
+                <div class="form-grid">
+                    <div>
+                        <label for="startDate">Date de début</label>
+                        <input type="date" name="startDate" id="startDate" th:value="${defaultStartDate}" disabled>
+                    </div>
+                    <div>
+                        <label for="endDate">Date de fin</label>
+                        <input type="date" name="endDate" id="endDate" th:value="${defaultEndDate}" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 20px;">
+                <i class="fas fa-chart-bar"></i> Générer le rapport
+            </button>
+        </form>
+    </div>
+
+    <section class="reports-section">
+        <div class="reports-header">
+            <div class="card-title" style="margin-bottom: 0;"><i class="fas fa-list"></i> Rapports générés</div>
+        </div>
+
+        <div th:if="${reports != null and !reports.isEmpty()}" class="report-grid">
+            <div class="report-card" th:each="report : ${reports}"
+                 th:data-id="${report.id}"
+                 onclick="window.location.href='/reports/view/' + this.getAttribute('data-id')">
+
+                <div class="report-top"
+                     th:classappend="${report.type.name() == 'MONTHLY'} ? ' badge-monthly' : (${report.type.name() == 'ANNUAL'} ? ' badge-annual' : ' badge-custom')">
+                    <i th:class="${report.type.name() == 'MONTHLY'} ? 'fas fa-calendar-day' : (${report.type.name() == 'ANNUAL'} ? 'fas fa-calendar' : 'fas fa-calendar-alt')"></i>
+                    <span th:text="${report.type.label}"></span>
+                </div>
+
+                <div class="report-body">
+                    <div class="stat-line">
+                        <span>Période</span>
+                        <span><span th:text="${#temporals.format(report.startDate, 'dd/MM/yyyy')}"></span> → <span th:text="${#temporals.format(report.endDate, 'dd/MM/yyyy')}"></span></span>
+                    </div>
+                    <div class="stat-line">
+                        <span>Budget</span>
+                        <span th:text="${#numbers.formatDecimal(report.totalBudget, 1, 2)} + ' MAD'"></span>
+                    </div>
+                    <div class="stat-line">
+                        <span>Dépenses</span>
+                        <span th:text="${#numbers.formatDecimal(report.totalExpenses, 1, 2)} + ' MAD'"></span>
+                    </div>
+                    <div class="stat-line">
+                        <span>Économies</span>
+                        <span th:classappend="${report.totalSavings < 0} ? 'text-danger' : 'text-success'"
+                              th:text="${#numbers.formatDecimal(report.totalSavings, 1, 2)} + ' MAD'"></span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar"
+                             th:classappend="${report.globalUsagePercentage > 100} ? ' bar-danger' : (${report.globalUsagePercentage > 80} ? ' bar-watch' : ' bar-safe')"
+                             th:style="'width:' + (${report.globalUsagePercentage > 100 ? 100 : report.globalUsagePercentage}) + '%'"></div>
+                    </div>
+                    <div class="stat-line">
+                        <span>Utilisation</span>
+                        <span th:text="${#numbers.formatDecimal(report.globalUsagePercentage, 1, 1)} + '%' "></span>
+                    </div>
+                </div>
+
+                <div class="report-footer">
+                    <div class="meta">Généré le <span th:text="${#temporals.format(report.generatedAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+                    <div class="actions" onclick="event.stopPropagation();">
+                        <a th:href="@{/reports/view/{id}(id=${report.id})}" class="icon-btn" data-tooltip="Visualiser le rapport">
+                            <i class="fas fa-magnifying-glass"></i>
+                        </a>
+                        <a th:href="@{/reports/export/{id}/pdf(id=${report.id})}" class="icon-btn" data-tooltip="Télécharger en PDF">
+                            <i class="fas fa-file-arrow-down"></i>
+                        </a>
+                        <form th:action="@{/reports/delete/{id}(id=${report.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="icon-btn delete" data-tooltip="Supprimer le rapport"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce rapport?');">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="reportsPagination" class="pagination-container" th:if="${reports != null}">
+            <p id="reportsPaginationInfo" class="pagination-info"></p>
+            <div id="reportsPaginationControls" class="pagination-controls"></div>
+        </div>
+
+        <div th:if="${reports == null or reports.isEmpty()}" class="empty-state">
+            <i class="fas fa-chart-line" style="font-size: 34px; color: #cbd5e1;"></i>
+            <p style="margin-top: 10px;">Aucun rapport généré pour le moment.</p>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2025 FINEO. Tous les droits réservés.</p>
+</footer>
+
+<script>
+    let deleteMode = false;
+
+    const profileBtn = document.getElementById('profileBtn');
+    const logoutMenu = document.getElementById('logoutMenu');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            logoutMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !logoutMenu.contains(e.target)) {
+                logoutMenu.classList.remove('active');
+            }
+        });
+    }
+
+    function setActiveTile(type) {
+        ['monthly','annual','custom'].forEach(t => {
+            const tile = document.getElementById(`tile-${t}`);
+            if (tile) tile.classList.toggle('active', t === type);
+        });
+    }
+
+    function showReportForm(type) {
+        document.querySelectorAll('.form-section').forEach(section => section.classList.remove('active'));
+        document.querySelectorAll('.form-section input, .form-section select').forEach(input => input.disabled = true);
+
+        let formId;
+        if (type === 'monthly') formId = 'monthlyForm';
+        if (type === 'annual') formId = 'annualForm';
+        if (type === 'custom') formId = 'customForm';
+
+        const activeForm = document.getElementById(formId);
+        if (activeForm) {
+            activeForm.classList.add('active');
+            activeForm.querySelectorAll('input, select').forEach(input => input.disabled = false);
+        }
+        setActiveTile(type);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        showReportForm('monthly');
+        
+        updateReportsPagination();
+    });
+
+
+    let reportsCurrentPage = 1;
+    const reportsItemsPerPage = 6;
+
+    function updateReportsPagination() {
+        const cards = Array.from(document.querySelectorAll('.report-grid .report-card'));
+        const totalItems = cards.length;
+        const totalPages = Math.ceil(totalItems / reportsItemsPerPage) || 1;
+
+
+        cards.forEach((card, index) => {
+            const start = (reportsCurrentPage - 1) * reportsItemsPerPage;
+            const end = start + reportsItemsPerPage;
+            card.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+
+
+        const start = totalItems > 0 ? (reportsCurrentPage - 1) * reportsItemsPerPage + 1 : 0;
+        const end = Math.min(reportsCurrentPage * reportsItemsPerPage, totalItems);
+        const infoEl = document.getElementById('reportsPaginationInfo');
+        if (infoEl) infoEl.textContent = `${start}-${end}/${totalItems}`;
+
+
+        const controlsEl = document.getElementById('reportsPaginationControls');
+        if (controlsEl) {
+            if (totalItems > reportsItemsPerPage) {
+                controlsEl.innerHTML = generateReportsPaginationControls(totalPages);
+            } else {
+                controlsEl.innerHTML = '';
+            }
+        }
+
+
+        const containerEl = document.getElementById('reportsPagination');
+        if (containerEl) containerEl.style.display = (totalItems > 0) ? 'block' : 'none';
+    }
+
+    function generateReportsPaginationControls(totalPages) {
+        let html = '';
+        if (totalPages > 2 && reportsCurrentPage > 1) html += `<a onclick="reportsGoToPage(1)">⏮ Première</a>`;
+        if (reportsCurrentPage > 1) html += `<a onclick="reportsGoToPage(${reportsCurrentPage - 1})">◀ Précédent</a>`;
+        for (let i = 1; i <= totalPages; i++) {
+            if (i >= reportsCurrentPage - 2 && i <= reportsCurrentPage + 2) {
+                const active = i === reportsCurrentPage ? 'active' : '';
+                html += `<span class="${active}" onclick="reportsGoToPage(${i})">${i}</span>`;
+            }
+        }
+        if (reportsCurrentPage < totalPages) html += `<a onclick="reportsGoToPage(${reportsCurrentPage + 1})">Suivant ▶</a>`;
+        if (totalPages > 2 && reportsCurrentPage < totalPages) html += `<a onclick="reportsGoToPage(${totalPages})">Dernière ⏭</a>`;
+        return html;
+    }
+
+    function reportsGoToPage(page) {
+        reportsCurrentPage = page;
+        updateReportsPagination();
+
+        const glassCard = document.querySelector('.glass-card');
+        if (glassCard) {
+            glassCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+</script>
+</body>
+</html>
