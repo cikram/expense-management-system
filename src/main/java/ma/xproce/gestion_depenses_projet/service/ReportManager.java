@@ -22,6 +22,12 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import com.itextpdf.kernel.colors.Color;
+import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Text;
 
 
 @Slf4j
@@ -337,113 +343,108 @@ public class ReportManager implements ReportService {
 
     @Override
     public byte[] generatePdfReport(Report report) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
+            document.setMargins(30, 30, 30, 30);
 
+            Color blue = new DeviceRgb(52, 73, 94);
+            Color red = new DeviceRgb(192, 57, 43);
+            Color lightBlue = new DeviceRgb(230, 236, 240);
+            Color gray = new DeviceRgb(71, 85, 105);
+            Color green = new DeviceRgb(39, 174, 96);
 
-            document.add(new Paragraph("RAPPORT DE DÉPENSES")
-                    .setFontSize(20)
-                    .setBold());
+            Paragraph title = new Paragraph("RAPPORT DE DÉPENSES")
+                    .setFontSize(22)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(18);
+            document.add(title);
 
+            Paragraph meta = new Paragraph()
+                    .add(new Text("Type : ").setBold().setFontColor(blue))
+                    .add(report.getType().getLabel() + "  ")
+                    .add(new Text("Période : ").setBold().setFontColor(blue))
+                    .add(report.getStartDate() + " au " + report.getEndDate() + "  ")
+                    .add(new Text("Généré le : ").setBold().setFontColor(blue))
+                    .add(report.getGeneratedAt().toString())
+                    .setFontSize(11)
+                    .setFontColor(gray)
+                    .setMarginBottom(14);
+            document.add(meta);
 
-            document.add(new Paragraph(String.format("Type: %s", report.getType().getLabel())));
-            document.add(new Paragraph(String.format("Période: %s au %s",
-                    report.getStartDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                    report.getEndDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))));
-            document.add(new Paragraph(String.format("Généré le: %s",
-                    report.getGeneratedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))));
+            Paragraph resume = new Paragraph("RÉSUMÉ")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(10);
+            document.add(resume);
 
-
-            document.add(new Paragraph("\n--- RÉSUMÉ GLOBAL ---").setBold());
-            document.add(new Paragraph(String.format("Budget total: %.2f MAD", report.getTotalBudget())));
-            document.add(new Paragraph(String.format("Dépenses totales: %.2f MAD", report.getTotalExpenses())));
-            document.add(new Paragraph(String.format("Économies: %.2f MAD", report.getTotalSavings())));
-            document.add(new Paragraph(String.format("Taux d'utilisation: %.1f%%", report.getGlobalUsagePercentage())));
-
-
-            document.add(new Paragraph("\n--- ANALYSE ---").setBold());
-            document.add(new Paragraph(String.format("Catégorie dominante: %s (%.2f MAD)",
-                    report.getDominantCategory() != null ? report.getDominantCategory() : "N/A",
-                    report.getDominantCategoryAmount() != null ? report.getDominantCategoryAmount() : BigDecimal.ZERO)));
-            document.add(new Paragraph(String.format("Catégories en dépassement: %d",
-                    report.getOverBudgetCategoriesCount() != null ? report.getOverBudgetCategoriesCount() : 0)));
-            document.add(new Paragraph(String.format("Montant total de dépassement: %.2f MAD",
-                    report.getTotalOverBudgetAmount() != null ? report.getTotalOverBudgetAmount() : BigDecimal.ZERO)));
-
-
-            document.add(new Paragraph("\n--- DÉTAILS PAR CATÉGORIE ---").setBold());
-
-
-            Table table = new Table(5);
-            table.addHeaderCell("Catégorie");
-            table.addHeaderCell("Budget");
-            table.addHeaderCell("Dépenses");
-            table.addHeaderCell("Utilisation");
-            table.addHeaderCell("Dépassement");
-
-
-            List<Map<String, Object>> categoryDetails = objectMapper.readValue(
-                    report.getCategoryDetailsJson(),
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class)
-            );
-
-            for (Map<String, Object> category : categoryDetails) {
-                table.addCell(String.valueOf(category.get("name")));
-
-
-                Object budgetObj = category.get("budget");
-                if (budgetObj instanceof Number) {
-                    table.addCell(String.format("%.2f", ((Number) budgetObj).doubleValue()));
-                } else {
-                    table.addCell(String.format("%.2f", new BigDecimal(String.valueOf(budgetObj)).doubleValue()));
-                }
-
-
-                Object expensesObj = category.get("expenses");
-                if (expensesObj instanceof Number) {
-                    table.addCell(String.format("%.2f", ((Number) expensesObj).doubleValue()));
-                } else {
-                    table.addCell(String.format("%.2f", new BigDecimal(String.valueOf(expensesObj)).doubleValue()));
-                }
-
-
-                Object usageObj = category.get("usagePercentage");
-                if (usageObj instanceof Number) {
-                    table.addCell(String.format("%.1f%%", ((Number) usageObj).doubleValue()));
-                } else {
-                    table.addCell(String.format("%.1f%%", Double.parseDouble(String.valueOf(usageObj))));
-                }
-
-
-                Object overBudgetObj = category.get("overBudgetAmount");
-                BigDecimal overBudget;
-                if (overBudgetObj instanceof Number) {
-                    overBudget = BigDecimal.valueOf(((Number) overBudgetObj).doubleValue());
-                } else {
-                    overBudget = new BigDecimal(String.valueOf(overBudgetObj));
-                }
-
-                if (overBudget.compareTo(BigDecimal.ZERO) > 0) {
-                    table.addCell(String.format("%.2f", overBudget.doubleValue()));
-                } else {
-                    table.addCell("-");
-                }
+            document.add(new Paragraph(String.format("Budget total : %.2f MAD", report.getTotalBudget())).setFontColor(gray));
+            document.add(new Paragraph(String.format("Dépenses totales : %.2f MAD", report.getTotalExpenses())).setFontColor(gray));
+            document.add(new Paragraph(String.format("Économies : %.2f MAD", report.getTotalSavings()))
+                    .setFontColor(report.getTotalSavings().compareTo(BigDecimal.ZERO) < 0 ? red : green));
+            if (report.getGlobalUsagePercentage() != null) {
+                document.add(new Paragraph(String.format("Utilisation : %.1f%%", report.getGlobalUsagePercentage())).setFontColor(gray));
             }
 
+            Paragraph analyse = new Paragraph("ANALYSE")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(16);
+            document.add(analyse);
+
+            document.add(new Paragraph("Catégorie dominante : " +
+                    (report.getDominantCategory() != null ? report.getDominantCategory() : "N/A")
+                    + " (" + String.format("%.2f MAD",
+                    report.getDominantCategoryAmount() != null ? report.getDominantCategoryAmount() : BigDecimal.ZERO) + ")").setFontColor(gray));
+            document.add(new Paragraph("Catégories en dépassement : " +
+                    (report.getOverBudgetCategoriesCount() != null ? report.getOverBudgetCategoriesCount() : 0)).setFontColor(gray));
+            document.add(new Paragraph("Montant total des dépassements : " +
+                    String.format("%.2f MAD",
+                            report.getTotalOverBudgetAmount() != null ? report.getTotalOverBudgetAmount() : BigDecimal.ZERO)).setFontColor(gray));
+
+            Paragraph detail = new Paragraph("DÉTAIL PAR CATÉGORIE")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(16);
+            document.add(detail);
+
+            ObjectMapper mapper = new ObjectMapper();
+            List<Map<String, Object>> categoryDetails = mapper.readValue(
+                    report.getCategoryDetailsJson(),
+                    mapper.getTypeFactory().constructCollectionType(List.class, Map.class)
+            );
+
+            Table table = new Table(5);
+            table.setWidth(UnitValue.createPercentValue(100));
+            table.addHeaderCell(new Cell().add(new Paragraph("Catégorie")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Budget")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Dépenses")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Utilisation")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Dépassement")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+
+            for (Map<String, Object> category : categoryDetails) {
+                table.addCell(new Cell().add(new Paragraph(String.valueOf(category.get("name")))).setFontColor(gray));
+                double budget = new BigDecimal(String.valueOf(category.get("budget"))).doubleValue();
+                double expenses = new BigDecimal(String.valueOf(category.get("expenses"))).doubleValue();
+                double usage = Double.parseDouble(String.valueOf(category.get("usagePercentage")));
+                double over = new BigDecimal(String.valueOf(category.get("overBudgetAmount"))).doubleValue();
+                table.addCell(new Cell().add(new Paragraph(String.format("%.2f", budget))).setFontColor(gray));
+                table.addCell(new Cell().add(new Paragraph(String.format("%.2f", expenses))).setFontColor(gray));
+                table.addCell(new Cell().add(new Paragraph(String.format("%.1f%%", usage))).setFontColor(usage > 100 ? red : (usage > 80 ? blue : gray)).setBold());
+                table.addCell(new Cell().add(new Paragraph(over > 0 ? String.format("%.2f", over) : "-")).setFontColor(over > 0 ? red : green).setBold());
+            }
             document.add(table);
 
-
             document.close();
-
             return baos.toByteArray();
-
         } catch (Exception e) {
             log.error("Erreur lors de la génération du PDF: " + e.getMessage(), e);
-
-
             try {
                 return generateSimplePdfReport(report);
             } catch (Exception ex) {
@@ -499,49 +500,77 @@ public class ReportManager implements ReportService {
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
+            document.setMargins(30, 30, 30, 30);
 
+            
+            Color blue = new DeviceRgb(52, 73, 94); 
+            Color red = new DeviceRgb(192, 57, 43); 
+            Color lightBlue = new DeviceRgb(230, 236, 240); 
+            Color gray = new DeviceRgb(71, 85, 105);
+            Color green = new DeviceRgb(39, 174, 96); 
+          
+            Paragraph title = new Paragraph("RAPPORT DE DÉPENSES AVEC GRAPHIQUE")
+                    .setFontSize(22)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(18);
+            document.add(title);
 
-            document.add(new Paragraph("RAPPORT DE DÉPENSES AVEC GRAPHIQUE")
-                    .setFontSize(20)
-                    .setBold());
-            document.add(new Paragraph("\n"));
+           
+            Paragraph meta = new Paragraph()
+                    .add(new Text("Type : ").setBold().setFontColor(blue))
+                    .add(report.getType().getLabel() + "  ")
+                    .add(new Text("Période : ").setBold().setFontColor(blue))
+                    .add(report.getStartDate() + " au " + report.getEndDate() + "  ")
+                    .add(new Text("Généré le : ").setBold().setFontColor(blue))
+                    .add(report.getGeneratedAt().toString())
+                    .setFontSize(11)
+                    .setFontColor(gray)
+                    .setMarginBottom(14);
+            document.add(meta);
 
+            
+            Paragraph resume = new Paragraph("RÉSUMÉ")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(10);
+            document.add(resume);
 
-            document.add(new Paragraph("Type : " + report.getType().getLabel()));
-            document.add(new Paragraph("Période : " + report.getStartDate() + " au " + report.getEndDate()));
-            document.add(new Paragraph("Généré le : " + report.getGeneratedAt()));
-
-
-            document.add(new Paragraph("\n--- RÉSUMÉ ---").setBold());
-            document.add(new Paragraph(String.format("Budget total : %.2f MAD", report.getTotalBudget())));
-            document.add(new Paragraph(String.format("Dépenses totales : %.2f MAD", report.getTotalExpenses())));
-            document.add(new Paragraph(String.format("Économies : %.2f MAD", report.getTotalSavings())));
+            document.add(new Paragraph(String.format("Budget total : %.2f MAD", report.getTotalBudget())).setFontColor(gray));
+            document.add(new Paragraph(String.format("Dépenses totales : %.2f MAD", report.getTotalExpenses())).setFontColor(gray));
+            document.add(new Paragraph(String.format("Économies : %.2f MAD", report.getTotalSavings()))
+                    .setFontColor(report.getTotalSavings().compareTo(BigDecimal.ZERO) < 0 ? red : green));
             if (report.getGlobalUsagePercentage() != null) {
-                document.add(new Paragraph(String.format("Utilisation : %.1f%%", report.getGlobalUsagePercentage())));
+                document.add(new Paragraph(String.format("Utilisation : %.1f%%", report.getGlobalUsagePercentage())).setFontColor(gray));
             }
 
+            
+            Paragraph analyse = new Paragraph("ANALYSE")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(16);
+            document.add(analyse);
 
-            document.add(new Paragraph("\n--- ANALYSE ---").setBold());
             document.add(new Paragraph("Catégorie dominante : " +
                     (report.getDominantCategory() != null ? report.getDominantCategory() : "N/A")
                     + " (" + String.format("%.2f MAD",
-                    report.getDominantCategoryAmount() != null ? report.getDominantCategoryAmount() : BigDecimal.ZERO) + ")"));
+                    report.getDominantCategoryAmount() != null ? report.getDominantCategoryAmount() : BigDecimal.ZERO) + ")").setFontColor(gray));
             document.add(new Paragraph("Catégories en dépassement : " +
-                    (report.getOverBudgetCategoriesCount() != null ? report.getOverBudgetCategoriesCount() : 0)));
+                    (report.getOverBudgetCategoriesCount() != null ? report.getOverBudgetCategoriesCount() : 0)).setFontColor(gray));
             document.add(new Paragraph("Montant total des dépassements : " +
                     String.format("%.2f MAD",
-                            report.getTotalOverBudgetAmount() != null ? report.getTotalOverBudgetAmount() : BigDecimal.ZERO)));
+                            report.getTotalOverBudgetAmount() != null ? report.getTotalOverBudgetAmount() : BigDecimal.ZERO)).setFontColor(gray));
 
-
-            document.add(new Paragraph("\n--- DÉTAIL PAR CATÉGORIE ---").setBold());
-
-            Table table = new Table(5);
-            table.addHeaderCell("Catégorie");
-            table.addHeaderCell("Budget");
-            table.addHeaderCell("Dépenses");
-            table.addHeaderCell("Utilisation");
-            table.addHeaderCell("Dépassement");
-
+            
+            Paragraph detail = new Paragraph("DÉTAIL PAR CATÉGORIE")
+                    .setFontSize(14)
+                    .setBold()
+                    .setFontColor(blue)
+                    .setMarginTop(16);
+            document.add(detail);
 
             ObjectMapper mapper = new ObjectMapper();
             List<Map<String, Object>> categoryDetails = mapper.readValue(
@@ -549,21 +578,25 @@ public class ReportManager implements ReportService {
                     mapper.getTypeFactory().constructCollectionType(List.class, Map.class)
             );
 
+            Table table = new Table(5);
+            table.setWidth(UnitValue.createPercentValue(100));
+            table.addHeaderCell(new Cell().add(new Paragraph("Catégorie")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Budget")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Dépenses")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Utilisation")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+            table.addHeaderCell(new Cell().add(new Paragraph("Dépassement")).setBackgroundColor(lightBlue).setFontColor(blue).setBold());
+
             for (Map<String, Object> category : categoryDetails) {
-                table.addCell(String.valueOf(category.get("name")));
-
-
+                table.addCell(new Cell().add(new Paragraph(String.valueOf(category.get("name")))).setFontColor(gray));
                 double budget = new BigDecimal(String.valueOf(category.get("budget"))).doubleValue();
                 double expenses = new BigDecimal(String.valueOf(category.get("expenses"))).doubleValue();
                 double usage = Double.parseDouble(String.valueOf(category.get("usagePercentage")));
                 double over = new BigDecimal(String.valueOf(category.get("overBudgetAmount"))).doubleValue();
-
-                table.addCell(String.format("%.2f", budget));
-                table.addCell(String.format("%.2f", expenses));
-                table.addCell(String.format("%.1f%%", usage));
-                table.addCell(over > 0 ? String.format("%.2f", over) : "-");
+                table.addCell(new Cell().add(new Paragraph(String.format("%.2f", budget))).setFontColor(gray));
+                table.addCell(new Cell().add(new Paragraph(String.format("%.2f", expenses))).setFontColor(gray));
+                table.addCell(new Cell().add(new Paragraph(String.format("%.1f%%", usage))).setFontColor(usage > 100 ? red : (usage > 80 ? blue : gray)).setBold());
+                table.addCell(new Cell().add(new Paragraph(over > 0 ? String.format("%.2f", over) : "-")).setFontColor(over > 0 ? red : green).setBold());
             }
-
             document.add(table);
 
 
