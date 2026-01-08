@@ -113,5 +113,10 @@ public class BudgetManager implements BudgetService {
         budget.setUser(user);
         return budgetRepository.save(budget);
     }
+
+    @Override
+    public void deleteBudget(Long budgetId) {
+        budgetRepository.deleteById(budgetId);
+    }
 }
 

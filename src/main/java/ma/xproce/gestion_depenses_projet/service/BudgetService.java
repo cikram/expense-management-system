@@ -13,9 +13,10 @@ public interface BudgetService {
     Optional<Budget> getBudget(User user, Category category, YearMonth month);
     List<Budget> getAllUserBudgets(User user);
     Optional<OverBudgetCategory> getTopOverBudgetForCurrentOrPreviousMonth();
-    
 
     Optional<OverBudgetCategory> getTopOverBudgetForUserCurrentOrPreviousMonth(User user);
     Budget updateBudget(User user, Budget budget);
+
+    void deleteBudget(Long budgetId);
 }
 

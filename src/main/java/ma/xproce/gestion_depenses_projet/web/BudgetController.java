@@ -1,3 +1,4 @@
+ 
 package ma.xproce.gestion_depenses_projet.web;
 
 import lombok.RequiredArgsConstructor;
@@ -65,4 +66,10 @@ public class BudgetController {
         budgetService.updateBudget(user, budget);
         return "redirect:/budgets";
     }
+
+        @PostMapping("/delete/{id}")
+        public String deleteBudget(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long id) {
+            budgetService.deleteBudget(id);
+            return "redirect:/budgets";
+        }
 }

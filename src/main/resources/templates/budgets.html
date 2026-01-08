@@ -406,6 +406,7 @@
                 <th>Mois</th>
                 <th>Catégorie</th>
                 <th>Montant</th>
+                <th id="actionHeader" style="width: 120px; display: none;">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -413,18 +414,48 @@
             <td class="month-cell" th:text="${b.month}"></td>
             <td class="category-cell" th:text="${b.category.name}"></td>
             <td class="amount-cell" th:text="${b.amount}"></td>
+            <td class="action-cell" style="text-align:center; width: 120px; display: none;">
+                <form th:action="@{'/budgets/delete/' + ${b.id}}" method="post" style="display:inline;">
+                    <button type="submit" title="Supprimer" style="background:none;border:none;color:#e11d48;font-size:24px;line-height:1;cursor:pointer;padding:0;margin-right:30px;">
+                        &minus;
+                    </button>
+                </form>
+            </td>
         </tr>
         </tbody>
 
 
     <div style="display:flex; justify-content:flex-start; margin-bottom:12px; gap:8px;">
         <button id="editBudgetsBtn" style="background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 3px 8px rgba(37,99,235,0.11); transition:transform 0.2s,box-shadow 0.2s;" onclick="enableBudgetEditMode()">Modifier</button>
-            <button id="saveBudgetsBtn" style="display:none; background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="saveBudgetEdit()">
-                <svg style="width:20px;height:20px;vertical-align:middle;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Valider
-            </button>
-            <button id="cancelBudgetsBtn" style="display:none; background:rgba(37,99,235,0.08); color:var(--blue-dark); border:none; border-radius:8px;border-color :rgba(37,99,235,0.18); padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(244,63,94,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="cancelBudgetEdit()">Annuler</button>
+        <button id="toggleDeleteBtn" style="background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 3px 8px rgba(37,99,235,0.11); transition:transform 0.2s,box-shadow 0.2s;">Supprimer</button>
+        <button id="saveBudgetsBtn" style="display:none; background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="saveBudgetEdit()">
+            <svg style="width:20px;height:20px;vertical-align:middle;" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Valider
+        </button>
+        <button id="cancelBudgetsBtn" style="display:none; background:rgba(37,99,235,0.08); color:var(--blue-dark); border:none; border-radius:8px;border-color :rgba(37,99,235,0.18); padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(244,63,94,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="cancelBudgetEdit()">Annuler</button>
     </div>
+</table>
+<script>
+
+const toggleDeleteBtn = document.getElementById('toggleDeleteBtn');
+const actionHeader = document.getElementById('actionHeader');
+const actionCells = document.querySelectorAll('.action-cell');
+let deleteMode = false;
+if (toggleDeleteBtn && actionHeader && actionCells.length > 0) {
+    toggleDeleteBtn.addEventListener('click', function() {
+        deleteMode = !deleteMode;
+        if (deleteMode) {
+            actionHeader.style.display = '';
+            actionCells.forEach(cell => cell.style.display = 'table-cell');
+            toggleDeleteBtn.textContent = 'Valider';
+        } else {
+            actionHeader.style.display = 'none';
+            actionCells.forEach(cell => cell.style.display = 'none');
+            toggleDeleteBtn.textContent = 'Supprimer';
+        }
+    });
+}
+</script>
 
     </table>
 
