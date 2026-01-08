@@ -571,13 +571,15 @@ public class ReportManager implements ReportService {
                 base64Chart = base64Chart.replace("data:image/png;base64,", "").trim();
 
                 try {
-                    byte[] imageBytes = Base64.getDecoder().decode(base64Chart);
-                    com.itextpdf.layout.element.Image chartImage =
+                        byte[] imageBytes = Base64.getDecoder().decode(base64Chart);
+                        com.itextpdf.layout.element.Image chartImage =
                             new com.itextpdf.layout.element.Image(
-                                    com.itextpdf.io.image.ImageDataFactory.create(imageBytes));
-                    chartImage.setAutoScale(true);
-                    chartImage.setMarginTop(10);
-                    document.add(chartImage);
+                                com.itextpdf.io.image.ImageDataFactory.create(imageBytes));
+                        chartImage.setWidth(1000);
+                        chartImage.setHeight(500);
+                        chartImage.setAutoScale(true);
+                        chartImage.setMarginTop(10);
+                        document.add(chartImage);
                 } catch (IllegalArgumentException e) {
                     document.add(new Paragraph("Erreur : image du graphique invalide.").setFontColor(com.itextpdf.kernel.colors.ColorConstants.RED));
                 }
