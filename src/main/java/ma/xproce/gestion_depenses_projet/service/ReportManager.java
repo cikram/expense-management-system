@@ -6,6 +6,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Div;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ma.xproce.gestion_depenses_projet.dao.entities.*;
@@ -567,22 +568,23 @@ public class ReportManager implements ReportService {
 
 
             if (base64Chart != null && !base64Chart.isEmpty()) {
-                document.add(new Paragraph("\n--- GRAPHIQUE ---").setBold());
+                Div chartDiv = new Div();
+                chartDiv.setKeepTogether(true);
+                chartDiv.add(new Paragraph("\n--- GRAPHIQUE ---").setBold());
                 base64Chart = base64Chart.replace("data:image/png;base64,", "").trim();
-
                 try {
-                        byte[] imageBytes = Base64.getDecoder().decode(base64Chart);
-                        com.itextpdf.layout.element.Image chartImage =
+                    byte[] imageBytes = Base64.getDecoder().decode(base64Chart);
+                    com.itextpdf.layout.element.Image chartImage =
                             new com.itextpdf.layout.element.Image(
-                                com.itextpdf.io.image.ImageDataFactory.create(imageBytes));
-                        chartImage.setWidth(1000);
-                        chartImage.setHeight(500);
-                        chartImage.setAutoScale(true);
-                        chartImage.setMarginTop(10);
-                        document.add(chartImage);
+                                    com.itextpdf.io.image.ImageDataFactory.create(imageBytes));
+                    chartImage.setWidth(500);
+                    chartImage.setHeight(300);
+                    chartImage.setMarginTop(10);
+                    chartDiv.add(chartImage);
                 } catch (IllegalArgumentException e) {
-                    document.add(new Paragraph("Erreur : image du graphique invalide.").setFontColor(com.itextpdf.kernel.colors.ColorConstants.RED));
+                    chartDiv.add(new Paragraph("Erreur : image du graphique invalide.").setFontColor(com.itextpdf.kernel.colors.ColorConstants.RED));
                 }
+                document.add(chartDiv);
             } else {
                 document.add(new Paragraph("\n(Aucun graphique transmis)").setItalic());
             }
