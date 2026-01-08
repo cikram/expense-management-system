@@ -899,12 +899,53 @@
             } else {
                 container.classList.remove('pie-mode');
                 container.classList.add('line-mode');
+
                 const datasets = [];
                 const allLabels = new Set();
-
                 Object.values(expensesData).forEach(d => Object.keys(d).forEach(l => allLabels.add(l)));
-                const sortedLabels = Array.from(allLabels).sort();
-                const formattedLabels = sortedLabels.map(formatLabel);
+                Object.values(budgetsData).forEach(d => Object.keys(d).forEach(l => allLabels.add(l)));
+
+                
+                function isLabelInRange(label, start, end) {
+                    
+                    if (/^\d{4}-\d{2}$/.test(label) && /^\d{4}-\d{2}$/.test(start) && /^\d{4}-\d{2}$/.test(end)) {
+                        return label >= start && label <= end;
+                    }
+                    return true; 
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                let startMonth = urlParams.get('startMonth');
+                let endMonth = urlParams.get('endMonth');
+                let periodType = urlParams.get('periodType');
+                let singleMonth = urlParams.get('singleMonth');
+
+                let filteredLabels = Array.from(allLabels);
+                if (periodType === 'range' && startMonth && endMonth) {
+                    filteredLabels = filteredLabels.filter(l => isLabelInRange(l, startMonth, endMonth));
+                } else if (periodType === 'month' && singleMonth) {
+                    filteredLabels = filteredLabels.filter(l => l === singleMonth);
+                }
+
+                const sortedLabels = filteredLabels.sort((a, b) => {
+                    const dateRegex1 = /^\d{4}-\d{2}$/;
+                    const dateRegex2 = /^\d{1,2}\/\d{2}$/;
+                    if (dateRegex1.test(a) && dateRegex1.test(b)) {
+                        const [yearA, monthA] = a.split('-').map(Number);
+                        const [yearB, monthB] = b.split('-').map(Number);
+                        if (yearA !== yearB) return yearA - yearB;
+                        return monthA - monthB;
+                    }
+                    if (dateRegex2.test(a) && dateRegex2.test(b)) {
+                        const [monthA, yearA] = a.split('/').map(Number);
+                        const [monthB, yearB] = b.split('/').map(Number);
+                        if (yearA !== yearB) return yearA - yearB;
+                        return monthA - monthB;
+                    }
+                    return a.localeCompare(b);
+                });
+
+                const formattedLabels = sortedLabels.map(l => l.toLowerCase() === 'budget' ? '' : formatLabel(l));
                 const colors=['#3498db','#e74c3c','#f1c40f','#2ecc71','#9b59b6','#1abc9c'];
                 let colorIndex=0;
 

@@ -191,8 +191,6 @@ public class StatisticsController {
                 dataMap.put("ALL", totals);
                 model.addAttribute("chartKind", "pie");
             }
-
-
             else {
                 List<Long> ids = new ArrayList<>();
                 ids.add(category1);
@@ -205,24 +203,57 @@ public class StatisticsController {
                             .findFirst().orElse(null);
                     if (cat == null) continue;
 
-                    Map<YearMonth, Double> monthly = expenses.stream()
-                            .filter(e -> e.getCategory().getId().equals(id))
-                            .collect(Collectors.groupingBy(
-                                    e -> YearMonth.from(e.getDate()),
-                                    TreeMap::new,
-                                    Collectors.summingDouble(e -> e.getAmount().doubleValue())
-                            ));
-                    Map<String, Double> converted = new LinkedHashMap<>();
-                    monthly.forEach((ym, val) -> converted.put(ym.toString(), val));
-                    dataMap.put(cat.getName(), converted);
+                    if ("month".equals(periodType) && singleMonth != null && !singleMonth.isBlank()) {
+                        YearMonth ymSelected = YearMonth.parse(singleMonth);
+                        Map<LocalDate, Double> daily = expenses.stream()
+                                .filter(e -> e.getCategory().getId().equals(id))
+                                .filter(e -> YearMonth.from(e.getDate()).equals(ymSelected))
+                                .collect(Collectors.groupingBy(
+                                        Expense::getDate,
+                                        TreeMap::new,
+                                        Collectors.summingDouble(e -> e.getAmount().doubleValue())
+                                ));
+                        Map<String, Double> converted = new LinkedHashMap<>();
+                        daily.forEach((date, val) -> converted.put(date.getDayOfMonth() + "/" + date.getMonthValue(), val));
+                        dataMap.put(cat.getName(), converted);
 
-                    Map<String, Double> budgetValues = allBudgets.stream()
-                            .filter(b -> b.getCategory().getId().equals(id))
-                            .collect(Collectors.toMap(
-                                    b -> b.getMonth().toString(),
-                                    b -> b.getAmount().doubleValue(),
-                                    Double::sum));
-                    budgetMap.put(cat.getName(), budgetValues);
+                        Map<String, Double> budgetValues = allBudgets.stream()
+                                .filter(b -> b.getCategory().getId().equals(id))
+                                .filter(b -> b.getMonth().equals(ymSelected))
+                                .collect(Collectors.toMap(
+                                        b -> "Budget",
+                                        b -> b.getAmount().doubleValue(),
+                                        Double::sum));
+                        budgetMap.put(cat.getName(), budgetValues);
+                        model.addAttribute("timeScale", "day");
+                    } else {
+                        
+                        Map<YearMonth, Double> monthly = expenses.stream()
+                                .filter(e -> e.getCategory().getId().equals(id))
+                                .collect(Collectors.groupingBy(
+                                        e -> YearMonth.from(e.getDate()),
+                                        TreeMap::new,
+                                        Collectors.summingDouble(e -> e.getAmount().doubleValue())
+                                ));
+                        Map<String, Double> converted = new LinkedHashMap<>();
+                        YearMonth ymStart = startMonth != null && !startMonth.isBlank() ? YearMonth.parse(startMonth) : null;
+                        YearMonth ymEnd = endMonth != null && !endMonth.isBlank() ? YearMonth.parse(endMonth) : null;
+                        monthly.forEach((ym, val) -> {
+                            if ((ymStart == null || !ym.isBefore(ymStart)) && (ymEnd == null || !ym.isAfter(ymEnd))) {
+                                converted.put(ym.toString(), val);
+                            }
+                        });
+                        dataMap.put(cat.getName(), converted);
+
+                        Map<String, Double> budgetValues = allBudgets.stream()
+                                .filter(b -> b.getCategory().getId().equals(id))
+                                .collect(Collectors.toMap(
+                                        b -> b.getMonth().toString(),
+                                        b -> b.getAmount().doubleValue(),
+                                        Double::sum));
+                        budgetMap.put(cat.getName(), budgetValues);
+                        model.addAttribute("timeScale", "month");
+                    }
                 }
                 model.addAttribute("chartKind", "line");
             }
