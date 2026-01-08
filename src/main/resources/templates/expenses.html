@@ -239,15 +239,15 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.92);
+            background: none !important;
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+            box-shadow: none !important;
             margin-top: 20px;
         }
 
-        th, td { padding: 12px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.3); }
+        th, td { padding: 12px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.3); box-shadow: none !important; background: none !important; }
         thead { background: #f8fafc; color: #0f172a; font-weight: 600; }
         tbody tr { background: #ffffff; }
         
@@ -880,9 +880,9 @@
             <td th:text="${e.category != null ? e.category.name : 'Sans catégorie'}"></td>
             <td th:text="${e.description}"></td>
              
-            <td class="action-column">
+            <td class="action-column" style="background:transparent !important; box-shadow:none !important; border-radius:0 !important;">
                 <form th:action="@{'/expenses/delete/' + ${e.id}}" method="post">
-                    <button type="submit" class="delete-btn">Supprimer</button>
+                    <button type="submit" title="Supprimer" style="background:none;border:none;color:#e11d48;font-size:24px;line-height:1;cursor:pointer;padding:0;margin-right:30px;outline:none;box-shadow:none;">&minus;</button>
                 </form>
             </td>
         </tr>

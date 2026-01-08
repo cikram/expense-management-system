@@ -451,7 +451,7 @@ if (toggleDeleteBtn && actionHeader && actionCells.length > 0) {
         } else {
             actionHeader.style.display = 'none';
             actionCells.forEach(cell => cell.style.display = 'none');
-            toggleDeleteBtn.textContent = 'Supprimer';
+            toggleDeleteBtn.innerHTML = "<span style='font-size:16px;vertical-align:middle;margin-right:6px;'>&minus;</span>Supprimer";
         }
     });
 }
