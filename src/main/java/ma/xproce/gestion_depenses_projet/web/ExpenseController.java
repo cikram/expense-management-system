@@ -138,6 +138,21 @@ public class ExpenseController {
 
 
             if (totalAfter.compareTo(budget.getAmount()) > 0 && !confirmOverBudget) {
+              
+                Sort.Direction direction = Sort.Direction.DESC;
+                Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "date"));
+                Page<Expense> expensePage = expenseService.searchExpenses(user, null, null, null, pageable);
+                model.addAttribute("expenses", expensePage.getContent());
+                model.addAttribute("expensePage", expensePage);
+                model.addAttribute("currentPage", page);
+                model.addAttribute("totalPages", expensePage.getTotalPages());
+                model.addAttribute("totalElements", expensePage.getTotalElements());
+                model.addAttribute("size", size);
+                model.addAttribute("sortBy", "date");
+                model.addAttribute("sortDirection", "DESC");
+                model.addAttribute("selectedCategoryId", null);
+                model.addAttribute("startDate", null);
+                model.addAttribute("endDate", null);
                 model.addAttribute("showOverBudgetModal", true);
                 model.addAttribute("budgetAmount", budget.getAmount());
                 model.addAttribute("totalSpent", totalSpent);
