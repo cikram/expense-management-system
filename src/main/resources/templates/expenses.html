@@ -862,13 +862,13 @@
                 <span class="close-btn" onclick="closeOverBudgetModal()" title="Fermer">&times;</span>
             </div>
             <div class="modal-body">
-                <p style="font-size:1.18em; color:#d4380d; font-weight:600; margin-bottom:1.2em;">Cette dépense dépasse le budget défini pour cette catégorie.</p>
+                <p style="font-size:0.98em; color:#1e293b; font-weight:600; margin-bottom:1.2em;">Cette dépense dépasse le budget défini pour cette catégorie.</p>
                 <ul class="budget-details" style="margin: 0 0 1.5em 0;">
                     <li><span class="label">Budget autorisé :</span> <span class="amount authorized" th:text="${budgetAmount}"></span></li>
                     <li><span class="label">Déjà dépensé :</span> <span class="amount spent" th:text="${totalSpent}"></span></li>
                     <li><span class="label">Dépense actuelle :</span> <span class="amount current" th:text="${proposedExpense.amount}"></span></li>
                 </ul>
-                <p class="modal-question" style="margin-top:2.2em; color:#1e293b; font-size:1.13em; font-weight:500;">Voulez-vous l’ajouter quand même&nbsp;?</p>
+                <p class="modal-question" style="margin-top:2.2em; color:#1e293b; font-size:0.98em; font-weight:500;">Voulez-vous l’ajouter quand même&nbsp;?</p>
             </div>
             <div class="modal-footer">
                 <button class="btn cancel" type="button" onclick="closeOverBudgetModal()">Annuler</button>
@@ -886,14 +886,15 @@
             .enhanced-modal {
                 background: #fff;
                 border: 1.5px solid var(--glass-border);
-                border-radius: 18px;
-                box-shadow: 0 8px 32px rgba(37,99,235,0.10), 0 1.5px 0 #e0e7ef;
-                max-width: 440px;
-                min-width: 340px;
-                margin: 5% auto;
+                border-radius: 14px;
+                box-shadow: 0 6px 20px rgba(37,99,235,0.08), 0 1px 0 #e0e7ef;
+                max-width: 340px;
+                min-width: 220px;
+                margin: 6% auto;
                 font-family: inherit;
                 padding: 0;
                 position: relative;
+                font-size: 0.93em;
                 animation: modalPop 0.25s cubic-bezier(.4,1.6,.6,1) 1;
             }
             @keyframes modalPop {
@@ -903,27 +904,27 @@
             .enhanced-modal .modal-header {
                 display: flex;
                 align-items: center;
-                padding: 28px 28px 0 28px;
+                padding: 16px 16px 0 16px;
             }
             .enhanced-modal .modal-title {
                 color: #d4380d;
                 font-weight: bold;
-                font-size: 1.18em;
+                font-size: 1em;
                 flex: 1;
                 letter-spacing: 0.5px;
             }
             .enhanced-modal .close-btn {
-                font-size: 1.5em;
+                font-size: 1.1em;
                 color: #888;
                 cursor: pointer;
-                margin-left: 10px;
+                margin-left: 8px;
                 transition: color 0.2s;
             }
             .enhanced-modal .close-btn:hover {
                 color: #d4380d;
             }
             .enhanced-modal .modal-body {
-                padding: 18px 28px 0 28px;
+                padding: 10px 16px 0 16px;
             }
             .enhanced-modal .budget-details {
                 list-style: none;
@@ -931,17 +932,17 @@
                 margin: 0 0 0.5em 0;
             }
             .enhanced-modal .budget-details li {
-                margin-bottom: 12px;
-                font-size: 1.08em;
+                margin-bottom: 8px;
+                font-size: 0.97em;
                 display: flex;
                 align-items: center;
             }
             .enhanced-modal .budget-details .label {
-                min-width: 140px;
+                min-width: 90px;
                 color: #111;
                 font-weight: 500;
-                font-size: 0.98em;
-                margin-right: 8px;
+                font-size: 0.93em;
+                margin-right: 6px;
             }
             .enhanced-modal .amount.authorized { color: #15803d; font-weight: 600; }
             .enhanced-modal .amount.spent { color: #b45309; font-weight: 600; }
@@ -949,15 +950,15 @@
             .enhanced-modal .modal-footer {
                 display: flex;
                 justify-content: flex-end;
-                gap: 18px;
-                padding: 28px;
+                gap: 10px;
+                padding: 14px;
                 border-top: 1px solid #f1f5f9;
             }
             .enhanced-modal .btn {
                 border: none;
-                border-radius: 7px;
-                padding: 8px 22px;
-                font-size: 1em;
+                border-radius: 6px;
+                padding: 6px 14px;
+                font-size: 0.93em;
                 cursor: pointer;
                 font-weight: 500;
                 transition: background 0.2s, color 0.2s;

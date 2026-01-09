@@ -390,36 +390,49 @@
 
         function toggleEditMode(button) {
             const rows = document.querySelectorAll('tbody tr');
-            const editCols = document.querySelectorAll('.edit-column');
-
             if (!editMode) {
-
-                editCols.forEach(col => col.style.display = 'table-cell');
                 rows.forEach(row => {
                     const nameCell = row.cells[0];
                     const descCell = row.cells[1];
                     const nameValue = nameCell.textContent;
                     const descValue = descCell.textContent;
-                    
                     nameCell.innerHTML = `<input type="text" class="edit-input" value="${nameValue}" data-original="${nameValue}">`;
                     descCell.innerHTML = `<input type="text" class="edit-input" value="${descValue}" data-original="${descValue}">`;
                 });
                 button.textContent = 'Valider';
                 editMode = true;
             } else {
-
-                editCols.forEach(col => col.style.display = 'none');
+                let modification = false;
                 rows.forEach(row => {
                     const nameInput = row.cells[0].querySelector('input');
                     const descInput = row.cells[1].querySelector('input');
-                    
-                    if (nameInput && descInput) {
-                        row.cells[0].textContent = nameInput.dataset.original;
-                        row.cells[1].textContent = descInput.dataset.original;
+                    const id = row.getAttribute('data-id');
+                    if (nameInput && descInput && id) {
+                        if (nameInput.value !== nameInput.dataset.original || descInput.value !== descInput.dataset.original) {
+                            modification = true;
+                            const form = document.createElement('form');
+                            form.method = 'post';
+                            form.action = `/categories/update/${id}`;
+                            const nameField = document.createElement('input');
+                            nameField.type = 'hidden';
+                            nameField.name = 'name';
+                            nameField.value = nameInput.value;
+                            const descField = document.createElement('input');
+                            descField.type = 'hidden';
+                            descField.name = 'description';
+                            descField.value = descInput.value;
+                            form.appendChild(nameField);
+                            form.appendChild(descField);
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
                     }
                 });
-                button.textContent = 'Modifier';
                 editMode = false;
+                button.textContent = 'Modifier';
+                if (modification) {
+                    setTimeout(() => window.location.reload(), 300);
+                }
             }
         }
 
@@ -602,21 +615,13 @@
             <tr>
                 <th>Nom</th>
                 <th>Description</th>
-                <th class="edit-column">Enregistrer</th>
                 <th class="action-column">Supprimer</th>
             </tr>
         </thead>
         <tbody>
-            <tr th:each="cat : ${categories}">
+            <tr th:each="cat : ${categories}" th:attr="data-id=${cat.id}">
                 <td th:text="${cat.name}"></td>
                 <td th:text="${cat.description}"></td>
-                <td class="edit-column">
-                    <button type="button" class="save-btn" th:onclick="'saveCategory(' + ${cat.id} + ', this)'">
-                        <svg class="save-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </button>
-                </td>
                 <td class="action-column">
                     <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" style="display: inline;">
                         <button type="submit" class="delete-btn">−</button>

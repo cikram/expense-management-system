@@ -1,3 +1,4 @@
+
 package ma.xproce.gestion_depenses_projet.web;
 
 import lombok.RequiredArgsConstructor;
@@ -9,9 +10,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+
 
 @Controller
 @RequiredArgsConstructor
@@ -62,4 +67,6 @@ public class CategoryController {
         categoryService.updateCategory(id, category);
         return "redirect:/categories";
     }
+
+    
 }

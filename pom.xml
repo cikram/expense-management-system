@@ -6,7 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.7</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/> 
     </parent>
     <groupId>ma.xproce</groupId>
     <artifactId>gestion_depenses_projet</artifactId>
@@ -93,7 +93,7 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- PDF Generation -->
+       
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
@@ -101,7 +101,7 @@
             <type>pom</type>
         </dependency>
 
-        <!-- JSON Processing -->
+        
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

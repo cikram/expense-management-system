@@ -393,7 +393,7 @@
             </a>
 
             <span class="pagination-actions">
-                <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                <span th:if="${totalPages > 1}" th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                           <a th:href="@{/admin/admins(page=${i})}"
                               th:text="${i + 1}"
                               th:classappend="i == currentPage ? 'active' : ''"
@@ -436,6 +436,13 @@
         const actionsVisible = document.querySelector('.actions-col') && document.querySelector('.actions-col').style.display !== 'none';
         document.querySelectorAll('.actions-col').forEach(td => td.style.display = actionsVisible ? 'none' : 'table-cell');
         document.querySelectorAll('.actions-header').forEach(th => th.style.display = actionsVisible ? 'none' : 'table-cell');
+        
+        const btn = document.getElementById('show-actions-btn');
+        if (actionsVisible) {
+            btn.textContent = 'Supprimer';
+        } else {
+            btn.textContent = 'Valider';
+        }
     }
     </script>
 </div>
