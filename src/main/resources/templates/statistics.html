@@ -906,10 +906,9 @@
                 Object.values(expensesData).forEach(d => Object.keys(d).forEach(l => allLabels.add(l)));
                 Object.values(budgetsData).forEach(d => Object.keys(d).forEach(l => allLabels.add(l)));
                
+
                 const sortedLabels = Array.from(allLabels).sort((a, b) => {
-                    
                     const dateRegex1 = /^\d{4}-\d{2}$/;
-                  
                     const dateRegex2 = /^\d{1,2}\/\d{2}$/;
                     if (dateRegex1.test(a) && dateRegex1.test(b)) {
                         const [yearA, monthA] = a.split('-').map(Number);
@@ -918,7 +917,6 @@
                         return monthA - monthB;
                     }
                     if (dateRegex2.test(a) && dateRegex2.test(b)) {
-                       
                         const [monthA, yearA] = a.split('/').map(Number);
                         const [monthB, yearB] = b.split('/').map(Number);
                         if (yearA !== yearB) return yearA - yearB;
@@ -926,20 +924,36 @@
                     }
                     return a.localeCompare(b);
                 });
-                const formattedLabels = sortedLabels.map(formatLabel);
+
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const periodType = urlParams.get('periodType');
+                const startMonth = urlParams.get('startMonth');
+                const endMonth = urlParams.get('endMonth');
+                let filteredLabels = sortedLabels;
+                if (periodType === 'range' && startMonth && endMonth) {
+                    filteredLabels = sortedLabels.filter(l => {
+                        if (/^\d{4}-\d{2}$/.test(l)) {
+                            return l >= startMonth && l <= endMonth;
+                        }
+                        return true;
+                    });
+                }
+
+                const formattedLabels = filteredLabels.map(formatLabel);
                 const colors=['#3498db','#e74c3c','#f1c40f','#2ecc71','#9b59b6','#1abc9c'];
                 let colorIndex=0;
 
                 Object.entries(expensesData).forEach(([cat,data])=>{
                     const color=colors[colorIndex%colors.length];
-                    const values=sortedLabels.map(l=>data[l]||null);
+                    const values=filteredLabels.map(l=>data[l]||null);
                     datasets.push({label:cat+' - Dépenses', data:values, borderColor:color, backgroundColor:color+'33', tension:0.3});
                     colorIndex++;
                 });
 
                 Object.entries(budgetsData).forEach(([cat,data])=>{
                     const color=colors[colorIndex%colors.length];
-                    const values=sortedLabels.map(l=>data[l]||null);
+                    const values=filteredLabels.map(l=>data[l]||null);
                     datasets.push({label:cat+' - Budget', data:values, borderColor:color, borderDash:[5,5]});
                     colorIndex++;
                 });
