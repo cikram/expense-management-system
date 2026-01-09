@@ -504,9 +504,6 @@
 
 <main>
     <h1>Mes Rapports de dépenses</h1>
-    <p class="lead">
-        Ce projet est une application de gestion des dépenses personnelles et budgétaires. Elle permet aux utilisateurs de suivre, analyser et visualiser leurs dépenses par catégorie et par période, de générer des rapports détaillés (avec ou sans graphiques), d’identifier les dépassements de budget et d’optimiser la gestion financière au quotidien. L’interface propose la création de budgets, la saisie de dépenses, la génération de rapports PDF stylisés, ainsi que des outils d’analyse pour mieux maîtriser ses finances.
-    </p>
     <p class="lead">Analysez vos dépenses par catégorie et par période. Visualisez où va votre argent, identifiez les excès et ajustez vos budgets pour mieux maîtriser vos finances.</p>
 
     <div th:if="${success}" class="alert alert-success" role="alert" id="successAlert">
@@ -794,7 +791,6 @@
     }
 </script>
 <script>
-    // Masquer automatiquement le message de succès après 3 secondes
     document.addEventListener('DOMContentLoaded', function() {
         var successAlert = document.getElementById('successAlert');
         if (successAlert) {
