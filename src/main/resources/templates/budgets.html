@@ -425,7 +425,7 @@
         </tbody>
 
 
-    <div style="display:flex; justify-content:flex-start; margin-bottom:12px; gap:8px;">
+    <div id="budgetsActionBar" style="display:flex; justify-content:flex-start; margin-bottom:12px; gap:8px;">
         <button id="editBudgetsBtn" style="background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 3px 8px rgba(37,99,235,0.11); transition:transform 0.2s,box-shadow 0.2s;" onclick="enableBudgetEditMode()">Modifier</button>
         <button id="toggleDeleteBtn" style="background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 3px 8px rgba(37,99,235,0.11); transition:transform 0.2s,box-shadow 0.2s;"><span style='font-size:16px;vertical-align:middle;margin-right:6px;'>&minus;</span>Supprimer</button>
         <button id="saveBudgetsBtn" style="display:none; background:linear-gradient(135deg, var(--blue-dark), var(--blue-main)); color:#fff; border:none; border-radius:8px; padding:10px 20px; min-width:130px; font-size:14px; font-weight:500; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,0.12); transition:transform 0.2s,box-shadow 0.2s;" onclick="saveBudgetEdit()">
@@ -480,12 +480,13 @@ if (toggleDeleteBtn && actionHeader && actionCells.length > 0) {
     function enableBudgetEditMode() {
         if (budgetEditMode) return;
         budgetEditMode = true;
+        
         document.getElementById('editBudgetsBtn').style.display = 'none';
+        document.getElementById('toggleDeleteBtn').style.display = 'none';
         document.getElementById('saveBudgetsBtn').style.display = '';
         document.getElementById('cancelBudgetsBtn').style.display = '';
         editedRows = Array.from(document.querySelectorAll('table tbody tr'));
         oldBudgetValues = [];
-        
         if (!window.budgetCategories) {
             fetch('/categories/list').then(res => res.json()).then(cats => { window.budgetCategories = cats; makeRowsEditable(); });
         } else {
@@ -526,10 +527,11 @@ if (toggleDeleteBtn && actionHeader && actionCells.length > 0) {
     function cancelBudgetEdit() {
         if (!budgetEditMode) return;
         budgetEditMode = false;
+        
         document.getElementById('editBudgetsBtn').style.display = '';
+        document.getElementById('toggleDeleteBtn').style.display = '';
         document.getElementById('saveBudgetsBtn').style.display = 'none';
         document.getElementById('cancelBudgetsBtn').style.display = 'none';
-        
         oldBudgetValues.forEach(val => {
             val.row.querySelector('.month-cell').textContent = val.month;
             val.row.querySelector('.category-cell').textContent = val.category;
@@ -559,7 +561,12 @@ if (toggleDeleteBtn && actionHeader && actionCells.length > 0) {
             }
         });
         Promise.all(updates).then(() => {
-
+           
+            document.getElementById('editBudgetsBtn').style.display = '';
+            document.getElementById('toggleDeleteBtn').style.display = '';
+            document.getElementById('saveBudgetsBtn').style.display = 'none';
+            document.getElementById('cancelBudgetsBtn').style.display = 'none';
+            budgetEditMode = false;
             location.reload();
         }).catch(() => {
             alert('Erreur lors de la modification.');
