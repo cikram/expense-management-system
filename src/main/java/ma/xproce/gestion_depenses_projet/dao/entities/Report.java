@@ -1,11 +1,9 @@
 package ma.xproce.gestion_depenses_projet.dao.entities;
-
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.math.BigDecimal;
-
 @Entity
 @Getter
 @Setter
@@ -42,6 +40,9 @@ public class Report {
     private BigDecimal totalOverBudgetAmount;
 
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String categoryDetailsJson;
@@ -51,8 +52,7 @@ public class Report {
     @Column(columnDefinition = "LONGTEXT")
     private String timeSeriesJson;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+
 
     public enum ReportType {
         MONTHLY("Mensuel"),
